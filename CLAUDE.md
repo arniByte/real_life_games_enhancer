@@ -10,7 +10,7 @@ roguelike-слой — **души** (валюта), **Алтарь Судеб** 
 ```bash
 npm install          # зависимости
 npm run dev          # дев-сервер Vite (http://localhost:5173)
-npm test             # vitest — логика игр и экономики (36+ тестов)
+npm test             # vitest — логика игр и экономики (46+ тестов)
 npm run typecheck    # tsc без эмита
 npm run build        # tsc + vite build → dist/ (PWA, относительный base)
 npm run preview      # раздать dist/ локально
@@ -39,8 +39,8 @@ src/
     engine.ts        низкое разрешение → пост-шейдер (15-бит цвет, Bayer-дизер, ЭЛТ, растворение)
     textures.ts      ВСЕ текстуры процедурные (canvas), включая мишень дартса и колесо фортуны
     models.ts        лоу-поли модели (шахматы на LatheGeometry, дротик, ракетка, свечи…)
-    scenes/          hub · castle(шахматы) · tavern(дартс) · den(дурак) · arena(пинг-понг) · void(любая) · shrine
-    fx.ts            типы FX-событий UI → 3D
+    scenes/          hub · castle(шахматы: стол, 3D-доска) · tavern(дартс: мишень-тап, мел) · den · arena · void · shrine
+    fx.ts            типы FX-событий UI → 3D и SceneEvent 3D → UI (клики по клеткам/мишени, scene.ready)
   audio/sfx.ts     WebAudio-синтез: все звуки и эмбиент-дрон генерируются кодом
   ui/              экраны (Title, Hub, Setup, Play, Shrine, Results, Modals), компоненты, пиксель-иконки
     pixel/           PixelText (растровая типографика), theme (генерация 9-slice рамок), Vhs (ЭЛТ/VHS-слой + OSD)
@@ -68,6 +68,8 @@ docs/              GAME_DESIGN · ART_DIRECTION · ARCHITECTURE · ROADMAP
    из `ui/pixel/theme.ts` (`--f-*`). Запрещено: blur, `backdrop-filter` для красоты, плавные градиенты, мягкие тени,
    «гладкий» DOM-заголовок. Подробно — `docs/ART_DIRECTION.md` §3.
 9. **Без внешних ассетов**: картинки, звуки, модели — процедурные. Это держит сборку лёгкой и офлайн-готовой.
+10. **3D-ввод.** Сцена не меняет стор: она шлёт `SceneEvent`, доска игры решает. На `scene.ready` доска обязана
+   переслать состояние (сцена строится заново после алтаря/хаба). Текст в 3D — тексель ≈ пиксель при 240p.
 
 ## Баланс (коротко)
 
