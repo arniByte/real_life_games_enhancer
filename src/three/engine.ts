@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { globals } from './ps1';
 import type { BaseScene } from './scenes/base';
-import type { FxEvent, SceneId } from './fx';
+import type { FxEvent, SceneEvent, SceneId } from './fx';
 
 const POST_VERT = /* glsl */ `
 varying vec2 vUv;
@@ -91,6 +91,8 @@ export class RetroEngine {
   private frame = new THREE.Vector2();
   private frameTarget = new THREE.Vector2();
   private tmp = new THREE.Vector3();
+  private listeners = new Set<(e: SceneEvent) => void>();
+  private ndc = new THREE.Vector2();
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -128,9 +130,30 @@ export class RetroEngine {
     quad.frustumCulled = false;
     this.postScene.add(quad);
     window.addEventListener('resize', this.resize);
+    window.addEventListener('pointermove', this.onMouse);
     this.resize();
     this.loop();
   }
+
+  /** Subscribe to events coming out of the 3D world. */
+  on(fn: (e: SceneEvent) => void): () => void {
+    this.listeners.add(fn);
+    return () => this.listeners.delete(fn);
+  }
+
+  /** Forward pointer input (client px) to the active scene. */
+  pointer(type: 'down' | 'move' | 'up', clientX: number, clientY: number) {
+    if (!this.current || this.transitioning) return;
+    const r = this.canvas.getBoundingClientRect();
+    this.ndc.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
+    this.current.camera.updateMatrixWorld();
+    this.current.onPointer(type, this.ndc.clone());
+  }
+
+  private onMouse = (e: PointerEvent) => {
+    if (this.reducedMotion) return;
+    this.current?.setMouse((e.clientX / window.innerWidth) * 2 - 1, -((e.clientY / window.innerHeight) * 2 - 1));
+  };
 
   get sceneId() {
     return this.currentId;
@@ -167,6 +190,7 @@ export class RetroEngine {
     this.pending = null;
     this.current?.dispose();
     const next = this.factory(id);
+    next.emit = (e) => this.listeners.forEach((fn) => fn(e));
     next.build();
     this.current = next;
     this.currentId = id;
@@ -302,6 +326,7 @@ export class RetroEngine {
   dispose() {
     cancelAnimationFrame(this.raf);
     window.removeEventListener('resize', this.resize);
+    window.removeEventListener('pointermove', this.onMouse);
     this.current?.dispose();
     this.renderer.dispose();
   }

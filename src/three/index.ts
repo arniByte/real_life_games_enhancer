@@ -1,5 +1,5 @@
 import { RetroEngine } from './engine';
-import type { FxEvent, SceneId } from './fx';
+import type { FxEvent, SceneEvent, SceneId } from './fx';
 import type { BaseScene } from './scenes/base';
 import { HubScene } from './scenes/hub';
 import { CastleScene } from './scenes/castle';
@@ -9,7 +9,7 @@ import { ArenaScene } from './scenes/arena';
 import { VoidScene } from './scenes/void';
 import { ShrineScene } from './scenes/shrine';
 
-export type { FxEvent, SceneId };
+export type { FxEvent, SceneEvent, SceneId };
 
 const FACTORIES: Record<SceneId, () => BaseScene> = {
   hub: () => new HubScene(),
@@ -35,3 +35,8 @@ export const getEngine = () => engine;
 export const fx = (e: FxEvent) => engine?.fx(e);
 
 export const goScene = (id: SceneId) => engine?.go(id);
+
+/** Listen to the 3D world (square clicks, board taps…). */
+export const onScene = (fn: (e: SceneEvent) => void) => engine?.on(fn) ?? (() => {});
+
+export const pointerToScene = (type: 'down' | 'move' | 'up', x: number, y: number) => engine?.pointer(type, x, y);
