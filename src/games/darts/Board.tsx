@@ -5,6 +5,7 @@ import { player } from '../../core/session';
 import { Btn, motion } from '../../ui/components/kit';
 import { useNav } from '../../ui/nav';
 import { fx } from '../../three';
+import { Num } from '../../ui/pixel/Type';
 import { sfx } from '../../audio/sfx';
 import { addDart, checkoutHint, commitTurn, currentId, darts, dartsAllowed, resolveTurn, turnMods, undoDart } from './logic';
 import { type Dart, dartLabel } from './state';
@@ -90,10 +91,10 @@ export function DartsBoard({ session }: { session: Session }) {
       <div className="darts-head" style={{ ['--pc' as string]: p.color }}>
         <div className="darts-who">
           <span style={{ color: p.color }}>{p.name}</span>
-          <span className="dim">
-            {g.mode === 'x01' ? ' · осталось ' : ' · будет '}
-            <b className="darts-left">{remainingNow}</b>
-          </span>
+          <span className="dim">{g.mode === 'x01' ? '· осталось' : '· будет'}</span>
+          <Num size={18} tone={preview.bust ? 'blood' : 'gold'}>
+            {remainingNow}
+          </Num>
         </div>
         <div className="darts-slots">
           {Array.from({ length: allowed }, (_, i) => {

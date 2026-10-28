@@ -28,6 +28,8 @@ import { player, souls } from '../../core/session';
 import { fx } from '../../three';
 import type { WheelSector } from '../../three/textures';
 import { sfx } from '../../audio/sfx';
+import { PixelText } from '../pixel/PixelText';
+import { CardName, Heading } from '../pixel/Type';
 
 type Phase = 'menu' | 'spinning' | 'reveal' | 'pact' | 'hex' | 'cleanse';
 
@@ -208,13 +210,15 @@ export function Shrine({ playerId }: { playerId: string }) {
 
   return (
     <motion.div className="shrine" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <div className="shrine-head panel">
-        <PixelIcon id={me.sigil} color={me.color} size={26} />
-        <div className="grow">
-          <div className="field-label">Алтарь Судеб</div>
-          <div style={{ color: me.color, fontSize: 18 }}>{me.name}</div>
+      <div className="shrine-head panel solid dither-in">
+        <PixelIcon id={me.sigil} color={me.color} size={30} />
+        <div className="grow col" style={{ gap: 'calc(var(--pxn) * 1px)' }}>
+          <Heading tone="blood">Алтарь Судеб</Heading>
+          <div className="shrine-who" style={{ color: me.color }}>
+            {me.name}
+          </div>
         </div>
-        <Souls n={me.souls} size={24} />
+        <Souls n={me.souls} size={32} />
         {phase !== 'spinning' && (
           <Btn variant="ghost" onClick={leave}>
             Уйти
@@ -225,8 +229,8 @@ export function Shrine({ playerId }: { playerId: string }) {
       <div className="shrine-stage">
         <AnimatePresence mode="wait">
           {phase === 'spinning' && (
-            <motion.div key="spin" className="shrine-hint shadow-text" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              Судьба решается…
+            <motion.div key="spin" className="dither-in" initial={{ y: 6 }} animate={{ y: 0 }} exit={{ opacity: 0 }}>
+              <PixelText text="Судьба решается…" size={20} tone="bone" align="center" wrap />
             </motion.div>
           )}
 
@@ -252,16 +256,18 @@ export function Shrine({ playerId }: { playerId: string }) {
 
           {phase === 'pact' && session.pact && (
             <motion.div key="pact" className="shrine-pact" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-              <div className="shrine-hint shadow-text">Кровь пролита. Выбери дар.</div>
+              <div className="dither-in" style={{ width: '100%' }}>
+                <PixelText text="Кровь пролита. Выбери дар." size={20} tone="blood" align="center" wrap />
+              </div>
               <div className="pact-grid">
                 {session.pact.choices.map((id, i) => (
                   <motion.button
                     key={id}
                     type="button"
                     className="pact-choice"
-                    initial={{ rotateY: 90, opacity: 0 }}
-                    animate={{ rotateY: 0, opacity: 1 }}
-                    transition={{ delay: 0.15 + i * 0.18, type: 'spring', stiffness: 160, damping: 16 }}
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ delay: 0.15 + i * 0.18, duration: 0.24, ease: (t: number) => Math.floor(t * 4) / 4 }}
                     onClick={() => choose(i)}
                     onMouseEnter={() => sfx.hover()}
                   >
@@ -276,17 +282,19 @@ export function Shrine({ playerId }: { playerId: string }) {
 
       <AnimatePresence mode="wait">
         {phase === 'menu' && (
-          <motion.div key="menu" className="shrine-menu panel" initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }} transition={{ type: 'spring', stiffness: 240, damping: 26 }}>
+          <motion.div key="menu" className="shrine-menu panel solid dither-in" initial={{ y: 20 }} animate={{ y: 0 }} exit={{ opacity: 0 }} transition={{ type: 'spring', stiffness: 320, damping: 26 }}>
             <div className="offerings">
               {offerings.map((o) => (
                 <button key={o.id} type="button" className="offering" disabled={o.disabled} onClick={() => { sfx.click(); o.onClick(); }} onMouseEnter={() => sfx.hover()}>
                   <div className="offering-top">
-                    <PixelIcon id={o.icon} color={o.disabled ? '#6d6252' : '#e9dfc7'} size={26} />
+                    <PixelIcon id={o.icon} color={o.disabled ? '#6d6252' : '#e9dfc7'} size={30} />
                     <span className="offering-cost">
-                      {o.cost === 0 ? 'даром' : o.cost} <SoulGlyph size={14} />
+                      {o.cost === 0 ? 'даром' : o.cost} <SoulGlyph size={18} />
                     </span>
                   </div>
-                  <div className="offering-title">{o.title}</div>
+                  <CardName align="left" size={15}>
+                    {o.title}
+                  </CardName>
                   <div className="offering-text">{o.text}</div>
                 </button>
               ))}
@@ -299,8 +307,8 @@ export function Shrine({ playerId }: { playerId: string }) {
         )}
 
         {phase === 'hex' && (
-          <motion.div key="hex" className="shrine-menu panel" initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}>
-            <div className="h-section">Кого сглазить?</div>
+          <motion.div key="hex" className="shrine-menu panel solid dither-in" initial={{ y: 20 }} animate={{ y: 0 }} exit={{ opacity: 0 }}>
+            <Heading>Кого сглазить?</Heading>
             <div className="col" style={{ gap: 8 }}>
               {others.map((o) => {
                 const cost = hexCost(session, playerId, o.id);
@@ -310,10 +318,10 @@ export function Shrine({ playerId }: { playerId: string }) {
                     <PixelIcon id={o.sigil} color={o.color} size={20} />
                     <span className="grow" style={{ textAlign: 'left', color: o.color }}>
                       {o.name}
-                      {block && <span className="faint" style={{ fontSize: 13 }}> — {block}</span>}
+                      {block && <span className="faint"> — {block}</span>}
                     </span>
-                    <span>
-                      {cost} <SoulGlyph size={13} />
+                    <span className="row" style={{ gap: 4 }}>
+                      {cost} <SoulGlyph size={16} />
                     </span>
                   </Btn>
                 );
@@ -326,8 +334,8 @@ export function Shrine({ playerId }: { playerId: string }) {
         )}
 
         {phase === 'cleanse' && (
-          <motion.div key="cleanse" className="shrine-menu panel" initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}>
-            <div className="h-section">Какое проклятие сжечь? ({souls(COST.cleanse)})</div>
+          <motion.div key="cleanse" className="shrine-menu panel solid dither-in" initial={{ y: 20 }} animate={{ y: 0 }} exit={{ opacity: 0 }}>
+            <Heading>{`Какое проклятие сжечь? (${souls(COST.cleanse)})`}</Heading>
             <div className="sheet-perks">
               {myCurses.map((k: ActivePerk) => (
                 <button key={k.uid} type="button" className="pact-choice" onClick={() => purify(k.uid)}>
@@ -350,20 +358,23 @@ function RevealContent({ result, visitorId }: { result: ShrineResult; visitorId:
   const nameOf = (id: string) => session.players.find((p) => p.id === id)?.name ?? '?';
   if (result.outcome === 'jackpot') {
     return (
-      <motion.div className="reveal-big" initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 12 }}>
-        <div className="reveal-title" style={{ color: '#8ff0ff' }}>ДЖЕКПОТ</div>
+      <motion.div className="reveal-big dither-in" initial={{ scale: 1.5 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 14 }}>
+        <PixelText text="ДЖЕКПОТ" size={40} tone="soul" align="center" />
         <Souls n={JACKPOT_SOULS} size={48} />
       </motion.div>
     );
   }
   if (result.gained.length === 0) {
     return (
-      <motion.div className="reveal-big" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
-        <div className="reveal-title" style={{ color: result.type === 'cleanse' ? '#ffffff' : '#a39580' }}>
-          {result.type === 'cleanse' ? 'Очищено' : result.warded ? 'Рассеяно' : 'Пустота'}
-        </div>
+      <motion.div className="reveal-big dither-in slow" initial={{ scale: 1.2 }} animate={{ scale: 1 }}>
+        <PixelText
+          text={result.type === 'cleanse' ? 'Очищено' : result.warded ? 'Рассеяно' : 'Пустота'}
+          size={40}
+          tone={result.type === 'cleanse' ? 'bone' : 'ash'}
+          align="center"
+        />
         {result.notes.map((n) => (
-          <div key={n} className="shadow-text" style={{ fontSize: 18 }}>
+          <div key={n} className="reveal-big-note">
             {n}
           </div>
         ))}
@@ -379,11 +390,11 @@ function RevealContent({ result, visitorId }: { result: ShrineResult; visitorId:
           <motion.div
             key={g.perk.uid + i}
             className="reveal-card"
-            initial={{ rotateY: 180, scale: 0.6, opacity: 0 }}
-            animate={{ rotateY: 0, scale: 1, opacity: 1 }}
-            transition={{ delay: i * 0.6, type: 'spring', stiffness: 120, damping: 14 }}
+            initial={{ scaleX: 0, scaleY: 1.3 }}
+            animate={{ scaleX: 1, scaleY: 1 }}
+            transition={{ delay: i * 0.6, duration: 0.36, ease: (t: number) => Math.floor(t * 6) / 6 }}
           >
-            {target && <div className="reveal-to shadow-text">{result.reflected ? '↩ Зеркало вернуло сглаз' : `☠ Сглаз на ${target}`}</div>}
+            {target && <div className="reveal-to shadow-text">{result.reflected ? '↩ Зеркало вернуло сглаз' : `☠ Цель сглаза: ${target}`}</div>}
             <PerkCard def={def} params={g.perk.params} left={g.perk.left} game={session.gameId} />
           </motion.div>
         );
@@ -411,7 +422,7 @@ function OddsTable({ odds, pity, place, last, chaos }: { odds: Record<WheelOutco
           </div>
         ))}
       </div>
-      <div className="faint" style={{ fontSize: 13, lineHeight: 1.45, marginTop: 8 }}>
+      <div className="faint" style={{ fontSize: 15, lineHeight: 1.45, marginTop: 8 }}>
         Хаос: {chaos}. {place <= 0.01 ? 'Ты лидер — боги к тебе строже: проклятий больше.' : last ? 'Ты отстаёшь — боги милосердны: проклятий меньше, редких даров больше.' : 'Твоё место влияет на шансы: чем ниже, тем милостивее боги.'}{' '}
         {pity ? 'Два проклятия подряд — милость богов: проклятий не будет.' : `После ${PITY_AFTER} проклятий подряд — вращение без проклятий.`}
       </div>

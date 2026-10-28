@@ -6,6 +6,7 @@ import { GAME_META } from '../../games/meta';
 import { useNav } from '../nav';
 import { sfx } from '../../audio/sfx';
 import { fx } from '../../three';
+import { PixelText, usePx } from '../pixel/PixelText';
 
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
 
@@ -25,6 +26,7 @@ export function Results({ session }: { session: Session }) {
   const winner = session.players.find((p) => p.id === order[0])!;
   const draw = session.gameId === 'chess' && (session.game as { result?: { winner: string } }).result?.winner === 'draw';
   const { go } = useNav();
+  const px = usePx();
 
   const awards = session.enhancer.enabled
     ? AWARDS.map((a) => {
@@ -43,6 +45,7 @@ export function Results({ session }: { session: Session }) {
     const prefs = useApp.getState().setups[session.gameId];
     if (!prefs) return;
     useApp.getState().startSession(session.gameId, prefs.playerIds, prefs.options, prefs.enhancer);
+    useNav.getState().showOsd('rec');
     sfx.start();
     fx({ type: 'flash', color: meta.accent, strength: 0.5 });
   };
@@ -56,25 +59,23 @@ export function Results({ session }: { session: Session }) {
   return (
     <motion.div className="results-back" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ delay: 0.6 }}>
       <motion.div
-        className="panel solid results"
-        initial={{ scale: 0.85, y: 30, opacity: 0 }}
-        animate={{ scale: 1, y: 0, opacity: 1 }}
-        transition={{ delay: 0.9, type: 'spring', stiffness: 180, damping: 18 }}
+        className="panel solid results dither-in slow"
+        initial={{ y: 24 }}
+        animate={{ y: 0 }}
+        transition={{ delay: 0.2, type: 'spring', stiffness: 220, damping: 18 }}
       >
         <div className="results-head" style={{ ['--pc' as string]: winner.color }}>
           <div className="field-label">{meta.world}</div>
-          <motion.div className="results-title" initial={{ letterSpacing: '0.6em', opacity: 0 }} animate={{ letterSpacing: '0.12em', opacity: 1 }} transition={{ delay: 1.1, duration: 1 }}>
-            {draw ? 'НИЧЬЯ' : 'ПОБЕДА'}
-          </motion.div>
+          <div className="dither-in slow">
+            <PixelText text={draw ? 'НИЧЬЯ' : 'ПОБЕДА'} size={34} tone="gold" align="center" />
+          </div>
           {!draw && (
             <div className="results-winner">
               <PixelIcon id={winner.sigil} color={winner.color} size={30} />
-              <span style={{ color: winner.color }}>{winner.name}</span>
+              <PixelText text={winner.name.toUpperCase()} font="pixel" size={8} scale={px + 1} tone={winner.color} chroma={false} />
             </div>
           )}
-          <div className="dim" style={{ fontSize: 14 }}>
-            {logic.status(session)}
-          </div>
+          <div className="label">{logic.status(session)}</div>
         </div>
 
         <div className="results-list">
@@ -83,15 +84,13 @@ export function Results({ session }: { session: Session }) {
             const sv = logic.scoreView(session, id);
             return (
               <motion.div key={id} className={`results-row ${i === 0 ? 'first' : ''}`} style={{ ['--pc' as string]: p.color }} initial={{ x: -30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 1.3 + i * 0.12 }}>
-                <span className="results-place title-font">{ROMAN[i]}</span>
+                <PixelText text={ROMAN[i]} size={18} tone={i === 0 ? 'gold' : 'ash'} scale={2} chroma={false} style={{ width: 'calc(var(--pxn) * 16px)' }} />
                 <PixelIcon id={p.sigil} color={p.color} size={20} />
                 <span className="grow" style={{ color: p.color }}>
                   {p.name}
                 </span>
-                <span className="title-font" style={{ fontSize: 24 }}>
-                  {sv.main}
-                </span>
-                {session.enhancer.enabled && <Souls n={p.souls} size={14} />}
+                <PixelText text={sv.main} font="pixel" size={8} tone="bone" scale={px} chroma={false} />
+                {session.enhancer.enabled && <Souls n={p.souls} size={16} />}
               </motion.div>
             );
           })}
@@ -105,7 +104,7 @@ export function Results({ session }: { session: Session }) {
                 <div className="award-who" style={{ color: a!.player.color }}>
                   {a!.player.name}
                 </div>
-                <div className="faint" style={{ fontSize: 12 }}>
+                <div className="faint" style={{ fontSize: 16 }}>
                   {a!.text} · {a!.v}
                 </div>
               </div>

@@ -55,8 +55,6 @@ void main() {
   if (b8 < uFade) col = vec3(0.0);
 
   if (uCrt > 0.5) {
-    float row = fract(uv.y * uLowRes.y);
-    col *= 0.82 + 0.18 * smoothstep(0.0, 0.5, row) * smoothstep(1.0, 0.5, row) * 2.0;
     vec2 v = vUv - 0.5;
     col *= 1.0 - dot(v, v) * 0.9;
     col *= 0.97 + 0.03 * sin(uTime * 60.0 + uv.y * 3.0);

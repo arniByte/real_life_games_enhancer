@@ -34,7 +34,17 @@ export default defineConfig({
     }),
   ],
   build: {
-    chunkSizeWarningLimit: 1200,
+    chunkSizeWarningLimit: 900,
+    rollupOptions: {
+      output: {
+        // Long-lived vendor chunks cache well between releases.
+        manualChunks(id: string) {
+          if (id.includes('node_modules/three')) return 'three';
+          if (id.includes('node_modules/react') || id.includes('node_modules/scheduler')) return 'react';
+          if (id.includes('node_modules/motion') || id.includes('node_modules/framer-motion')) return 'motion';
+        },
+      },
+    },
   },
   test: { environment: 'node' },
 });

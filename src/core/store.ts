@@ -145,7 +145,9 @@ export const useApp = create<AppState>()(
 
       startSession(gameId, playerIds, options, enhancer) {
         const roster = get().roster;
-        const players: SessionPlayer[] = playerIds.map((id) => {
+        const known = playerIds.filter((id) => roster.some((p) => p.id === id));
+        if (known.length === 0) return;
+        const players: SessionPlayer[] = known.map((id) => {
           const r = roster.find((p) => p.id === id)!;
           return {
             ...r,

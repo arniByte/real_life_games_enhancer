@@ -7,6 +7,7 @@ import { GAME_META } from '../../games/meta';
 import { CHAOS_LABEL } from '../../core/shrine';
 import { sfx } from '../../audio/sfx';
 import { fx } from '../../three';
+import { Heading, WorldTitle } from '../pixel/Type';
 
 const CHAOS_HINT: Record<ChaosLevel, string> = {
   calm: 'Проклятий вдвое меньше. Для детей и первой партии.',
@@ -73,6 +74,7 @@ export function Setup() {
     const opts = { ...options };
     saveSetup(game, { playerIds: selected, options: opts, enhancer: enh });
     startSession(game, selected, opts, enh);
+    useNav.getState().showOsd('rec');
     sfx.start();
     fx({ type: 'flash', color: meta.accent, strength: 0.5 });
     go('play');
@@ -87,24 +89,24 @@ export function Setup() {
   return (
     <div className="setup">
       <motion.div
-        className="panel setup-panel"
-        initial={{ x: -40, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ delay: 0.6, type: 'spring', stiffness: 200, damping: 26 }}
+        className="panel solid setup-panel dither-in slow"
+        initial={{ x: -24 }}
+        animate={{ x: 0 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 26 }}
         style={{ ['--accent' as string]: meta.accent }}
       >
         <div className="setup-head">
           <div className="hub-game">
-            <PixelIcon id={meta.icon} color={meta.accent} size={20} /> {meta.title}
+            <PixelIcon id={meta.icon} color={meta.accent} size={22} /> {meta.title}
           </div>
-          <h1 className="h-world" style={{ fontSize: 'clamp(26px, 4.5vw, 44px)' }}>
+          <WorldTitle size={16} align="left">
             {meta.world}
-          </h1>
+          </WorldTitle>
         </div>
 
         <div className="setup-body scroll">
           <section className="col" style={{ gap: 10 }}>
-            <h3 className="h-section">Игроки</h3>
+            <Heading>Игроки</Heading>
             <div className="roster-chips">
               {roster.map((p) => (
                 <button
@@ -142,7 +144,7 @@ export function Setup() {
                   <span className="field-label">Порядок ходов</span>
                   {selected.length > 1 && (
                     <Btn size="small" variant="ghost" onClick={shuffle}>
-                      🎲 Жребий
+                      <PixelIcon id="dice" size={16} /> Жребий
                     </Btn>
                   )}
                 </div>
@@ -156,7 +158,7 @@ export function Setup() {
                       <span className="grow" style={{ color: p.color }}>
                         {p.name}
                       </span>
-                      {sideLabel && i < 2 && <span className="faint" style={{ fontSize: 13 }}>{sideLabel[i]}</span>}
+                      {sideLabel && i < 2 && <span className="faint">{sideLabel[i]}</span>}
                       <Btn size="small" variant="ghost" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Выше">
                         ↑
                       </Btn>
@@ -183,7 +185,7 @@ export function Setup() {
           </section>
 
           <section className="col" style={{ gap: 12 }}>
-            <h3 className="h-section">Правила стола</h3>
+            <Heading>Правила стола</Heading>
             {meta.options
               .filter((o) => !o.visible || o.visible(options))
               .map((o) =>
@@ -206,7 +208,7 @@ export function Setup() {
           </section>
 
           <section className="col" style={{ gap: 12 }}>
-            <h3 className="h-section">Энхансер</h3>
+            <Heading>Энхансер</Heading>
             <Field label="Режим">
               <Seg
                 value={enh.enabled}
@@ -229,7 +231,7 @@ export function Setup() {
                 <Field label="Стартовые души">
                   <Seg value={enh.startSouls} choices={[0, 1, 2, 3].map((n) => ({ value: n, label: String(n) }))} onChange={(v) => setEnh({ ...enh, startSouls: v })} />
                 </Field>
-                <div className="faint" style={{ fontSize: 13, lineHeight: 1.4 }}>
+                <div className="faint" style={{ fontSize: 15, lineHeight: 1.4 }}>
                   Души: {meta.income.join(' ')} Алтарь: {meta.shrineRule}
                 </div>
               </>
@@ -248,7 +250,7 @@ export function Setup() {
             ◀ Назад
           </Btn>
           <Btn variant="ghost" onClick={() => open('codex', game)}>
-            📜 <span className="hide-sm">Правила</span>
+            <PixelIcon id="scroll" size={18} /> <span className="hide-sm">Правила</span>
           </Btn>
           <div className="grow" />
           <Btn variant="primary" size="big" onClick={start} disabled={tooFew || tooMany}>

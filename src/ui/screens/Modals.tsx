@@ -12,12 +12,36 @@ import { MAX_BLESSINGS, MAX_CURSES } from '../../core/session';
 import { finish, log } from '../../core/session';
 import { act } from '../../core/store';
 import { sfx } from '../../audio/sfx';
+import { Heading } from '../pixel/Type';
 
 export function Modals() {
   const modal = useNav((s) => s.modal);
   const close = useNav((s) => s.close);
+  const ask = useNav((s) => s.ask);
+  const dismissAsk = useNav((s) => s.dismissAsk);
   return (
     <AnimatePresence>
+      {ask && (
+        <Modal key="ask" title="Уверен?" onClose={dismissAsk}>
+          <div className="col" style={{ gap: 16 }}>
+            <div style={{ fontSize: 17 }}>{ask.text}</div>
+            <div className="row" style={{ justifyContent: 'flex-end', gap: 8 }}>
+              <Btn variant="ghost" onClick={dismissAsk}>
+                Отмена
+              </Btn>
+              <Btn
+                variant="primary"
+                onClick={() => {
+                  ask.onYes();
+                  dismissAsk();
+                }}
+              >
+                {ask.yes}
+              </Btn>
+            </div>
+          </div>
+        </Modal>
+      )}
       {modal === 'codex' && <Codex key="codex" onClose={close} />}
       {modal === 'settings' && <SettingsModal key="settings" onClose={close} />}
       {modal === 'roster' && <Roster key="roster" onClose={close} />}
@@ -63,7 +87,7 @@ function About() {
         <b>Real Life Games Enhancer</b> — компаньон для настоящих игр. Вы играете в дартс, шахматы, карты или пинг-понг как обычно, а приложение ведёт счёт и добавляет поверх слой
         roguelike-магии.
       </p>
-      <h3 className="h-section">Петля</h3>
+      <Heading>Петля</Heading>
       <ol>
         <li>Играете по обычным правилам. Приложение считает очки.</li>
         <li>За хорошие действия игроки получают <b style={{ color: 'var(--soul)' }}>души</b> — валюту алтаря.</li>
@@ -71,7 +95,7 @@ function About() {
         <li>Выпадают <b>дары</b> (усиления) и <b>проклятия</b> (ослабления) — новые правила для конкретного игрока.</li>
         <li>Часть эффектов приложение применяет само (⚙ авто): множители, лишние дротики, часы. Остальное — честное слово за столом.</li>
       </ol>
-      <h3 className="h-section">Баланс</h3>
+      <Heading>Баланс</Heading>
       <ul>
         <li>Отстающие получают души форы, а боги к ним милостивее — проклятий меньше, редких даров больше.</li>
         <li>Лидера дешевле сглазить. Лидеру чаще выпадают проклятия.</li>
@@ -79,7 +103,7 @@ function About() {
         <li>Слоты: до {MAX_BLESSINGS} даров и {MAX_CURSES} проклятий; лишнее вытесняет самое старое.</li>
         <li>Доход считается по «сырым» очкам: перки не раздувают экономику.</li>
       </ul>
-      <h3 className="h-section">За столом</h3>
+      <Heading>За столом</Heading>
       <ul>
         <li>Положите ноутбук или телефон так, чтобы всем было видно. Один человек — ведущий.</li>
         <li>Ошиблись — «↶» отменяет любое действие (Ctrl+Z).</li>
@@ -95,23 +119,23 @@ function ShrineCodex() {
     <div className="codex col">
       <div className="offerings codex-offerings">
         <div className="offering">
-          <div className="offering-title">Колесо Фортуны · {COST.wheel}</div>
+          <div className="label" style={{ color: 'var(--gold)' }}>Колесо Фортуны · {COST.wheel}</div>
           <div className="offering-text">Случайный исход. Сектора колеса нарисованы по вашим настоящим шансам.</div>
         </div>
         <div className="offering">
-          <div className="offering-title">Кровавый пакт · {COST.pact}</div>
+          <div className="label" style={{ color: 'var(--gold)' }}>Кровавый пакт · {COST.pact}</div>
           <div className="offering-text">Выбор 1 из 3 даров (чаще редкие). Цена — шанс порчи: 25% / 40% / 55% по уровню хаоса. Последнему месту — без цены.</div>
         </div>
         <div className="offering">
-          <div className="offering-title">Сглаз · {COST.hex}</div>
+          <div className="label" style={{ color: 'var(--gold)' }}>Сглаз · {COST.hex}</div>
           <div className="offering-text">Случайное проклятие сопернику. Против лидера — на 1 дешевле. Нельзя, если на цели уже 2 проклятия. Оберег гасит, Зеркало отражает.</div>
         </div>
         <div className="offering">
-          <div className="offering-title">Очищение · {COST.cleanse}</div>
+          <div className="label" style={{ color: 'var(--gold)' }}>Очищение · {COST.cleanse}</div>
           <div className="offering-text">Снять с себя одно проклятие.</div>
         </div>
       </div>
-      <h3 className="h-section">Базовые шансы колеса</h3>
+      <Heading>Базовые шансы колеса</Heading>
       <div className="odds-grid">
         {OUTCOMES.map((o) => (
           <div key={o} className="odds-row">
@@ -135,12 +159,12 @@ function GameCodex({ game }: { game: GameId }) {
   const [kind, setKind] = useState<'blessing' | 'curse'>('blessing');
   return (
     <div className="codex col">
-      <div className="hub-game" style={{ fontSize: 18 }}>
-        <PixelIcon id={meta.icon} color={meta.accent} size={20} /> {meta.world}
+      <div className="hub-game" style={{ ['--accent' as string]: meta.accent }}>
+        <PixelIcon id={meta.icon} color={meta.accent} size={22} /> {meta.world}
       </div>
       {meta.rules.map((r) => (
         <div key={r.title}>
-          <h3 className="h-section">{r.title}</h3>
+          <Heading>{r.title}</Heading>
           <ul>
             {r.body.map((b) => (
               <li key={b}>{b}</li>
@@ -148,14 +172,14 @@ function GameCodex({ game }: { game: GameId }) {
           </ul>
         </div>
       ))}
-      <h3 className="h-section">Как добыть души</h3>
+      <Heading>Как добыть души</Heading>
       <ul>
         {meta.income.map((b) => (
           <li key={b}>{b}</li>
         ))}
         <li>Алтарь: {meta.shrineRule}</li>
       </ul>
-      <h3 className="h-section">Перки мира</h3>
+      <Heading>Перки мира</Heading>
       <Seg
         value={kind}
         choices={[
@@ -229,7 +253,7 @@ function SettingsModal({ onClose }: { onClose: () => void }) {
         <Field label="Меньше движения" hint="Без тряски камеры и резких вспышек.">
           <Seg value={settings.reducedMotion} choices={[{ value: false, label: 'Нет' }, { value: true, label: 'Да' }]} onChange={(v) => set({ reducedMotion: v })} />
         </Field>
-        <div className="faint" style={{ fontSize: 13 }}>
+        <div className="faint" style={{ fontSize: 15 }}>
           Сохранения хранятся в этом браузере. Приложение работает офлайн и ставится на экран как обычное (меню браузера → «Установить»).
         </div>
       </div>
@@ -275,9 +299,7 @@ function Roster({ onClose }: { onClose: () => void }) {
               <Btn
                 size="small"
                 variant="ghost"
-                onClick={() => {
-                  if (confirm(`Удалить ${p.name}?`)) removeRosterPlayer(p.id);
-                }}
+                onClick={() => useNav.getState().confirm(`Удалить ${p.name} из списка игроков?`, () => removeRosterPlayer(p.id), 'Удалить')}
                 aria-label="Удалить"
               >
                 ✕
@@ -326,7 +348,7 @@ function Chronicle({ onClose }: { onClose: () => void }) {
       onClose={onClose}
       footer={
         chronicle.length > 0 && (
-          <Btn size="small" variant="ghost" onClick={() => confirm('Стереть летопись?') && clear()}>
+          <Btn size="small" variant="ghost" onClick={() => useNav.getState().confirm('Стереть всю летопись?', clear, 'Стереть')}>
             Стереть
           </Btn>
         )
@@ -335,7 +357,7 @@ function Chronicle({ onClose }: { onClose: () => void }) {
       {chronicle.length === 0 && <div className="faint">Здесь появятся сыгранные партии и зал славы.</div>}
       {hall.length > 0 && (
         <>
-          <h3 className="h-section">Зал славы</h3>
+          <Heading>Зал славы</Heading>
           <div className="row wrap" style={{ gap: 8, marginBottom: 16 }}>
             {hall.map((h) => (
               <div key={h.name} className="award">
@@ -359,7 +381,7 @@ function Chronicle({ onClose }: { onClose: () => void }) {
                 <b style={{ color: GAME_META[c.gameId].accent }}>{GAME_META[c.gameId].title}</b>
                 <span className="faint"> · {new Date(c.at).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
               </div>
-              <div className="dim" style={{ fontSize: 14 }}>
+              <div className="dim">
                 {c.players.map((p) => (
                   <span key={p.name} style={{ marginRight: 10 }}>
                     {p.place}. <span style={{ color: p.color }}>{p.name}</span> ({p.score})
@@ -422,7 +444,7 @@ function Pause({ onClose }: { onClose: () => void }) {
         >
           Выйти на Перекрёсток
         </Btn>
-        <div className="faint" style={{ fontSize: 13, textAlign: 'center' }}>
+        <div className="label faint" style={{ textAlign: "center" }}>
           Игра сохраняется сама — можно вернуться позже.
         </div>
       </div>

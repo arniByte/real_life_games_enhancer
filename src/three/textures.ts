@@ -428,7 +428,7 @@ export const graffiti = () =>
   make('graffiti', 64, 32, (ctx, w, h, rnd) => {
     ctx.clearRect(0, 0, w, h);
     ctx.fillStyle = 'rgb(220,40,60)';
-    ctx.font = 'bold 18px monospace';
+    ctx.font = '24px Tiny5, monospace';
     ctx.fillText('11:0', 4, 22);
     ctx.fillStyle = 'rgba(60,200,220,0.9)';
     for (let i = 0; i < 40; i++) ctx.fillRect((rnd() * w) | 0, 26 + ((rnd() * 4) | 0), 2, 1);
@@ -492,7 +492,7 @@ export const dartboard = () =>
       }
       // numbers
       ctx.fillStyle = rgb(235, 230, 215);
-      ctx.font = 'bold 15px monospace';
+      ctx.font = '16px Tiny5, monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       DART_ORDER.forEach((n, i) => {
@@ -601,7 +601,7 @@ export function drawWheel(canvas: HTMLCanvasElement, sectors: WheelSector[]) {
   ctx.fill();
   const total = sectors.reduce((s, x) => s + x.weight, 0);
   let a = -Math.PI / 2;
-  ctx.font = 'bold 13px monospace';
+  ctx.font = '16px Tiny5, monospace';
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
   for (const sec of sectors) {

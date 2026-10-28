@@ -14,6 +14,7 @@ import { fx } from '../../three';
 import { sfx } from '../../audio/sfx';
 import { Shrine } from './Shrine';
 import { Results } from './Results';
+import { Heading, Num } from '../pixel/Type';
 
 export function Play() {
   const session = useApp((s) => s.session);
@@ -22,13 +23,19 @@ export function Play() {
   const { open, shrineFor, sheetFor, openSheet, go } = useNav();
 
   useSessionFx();
+  useWakeLock(session?.status === 'playing');
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
         e.preventDefault();
-        if (e.shiftKey) useApp.getState().redo();
-        else useApp.getState().undo();
+        if (e.shiftKey) {
+          useApp.getState().redo();
+          useNav.getState().showOsd('ff');
+        } else {
+          useApp.getState().undo();
+          useNav.getState().showOsd('rew');
+        }
       }
     };
     window.addEventListener('keydown', onKey);
@@ -62,17 +69,19 @@ export function Play() {
   return (
     <div className="play" style={{ ['--accent' as string]: meta.accent }}>
       <div className="play-top">
-        <Btn size="small" icon onClick={() => open('pause')} aria-label="Меню">
+        <Btn size="small" icon onClick={() => { open('pause'); useNav.getState().showOsd('pause'); }} aria-label="Меню">
           ☰
         </Btn>
         <div className="play-title grow">
-          <div className="title-font play-world">{meta.world}</div>
+          <Heading tone={meta.accent} align="center">
+            {meta.world}
+          </Heading>
           <div className="play-status">{logic.status(session)}</div>
         </div>
-        <Btn size="small" icon onClick={() => useApp.getState().undo()} disabled={!canUndo} aria-label="Отменить" title="Отменить (Ctrl+Z)">
+        <Btn size="small" icon onClick={() => { useApp.getState().undo(); useNav.getState().showOsd('rew'); }} disabled={!canUndo} aria-label="Отменить" title="Отменить (Ctrl+Z)">
           ↶
         </Btn>
-        <Btn size="small" icon onClick={() => useApp.getState().redo()} disabled={!canRedo} aria-label="Повторить" title="Повторить">
+        <Btn size="small" icon onClick={() => { useApp.getState().redo(); useNav.getState().showOsd('ff'); }} disabled={!canRedo} aria-label="Повторить" title="Повторить">
           ↷
         </Btn>
       </div>
@@ -88,7 +97,7 @@ export function Play() {
       </div>
 
       {session.status === 'playing' && (
-        <motion.div className="play-console panel" initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 220, damping: 26 }}>
+        <motion.div className="play-console panel dither-in" initial={{ y: 30 }} animate={{ y: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 26 }}>
           {session.enhancer.enabled && <ShrineButton session={session} />}
           <Board session={session} />
         </motion.div>
@@ -108,13 +117,11 @@ function PlayerCard({ session, pid, active, place, onOpen }: { session: Session;
       <div className="pcard-head">
         <PixelIcon id={p.sigil} color={p.color} size={18} />
         <span className="pcard-name">{p.name}</span>
-        {session.enhancer.enabled && <Souls n={p.souls} size={15} />}
+        {session.enhancer.enabled && <Souls n={p.souls} size={16} />}
       </div>
-      <AnimatePresence mode="popLayout" initial={false}>
-        <motion.div key={sv.main} className="pcard-score" initial={{ y: -12, opacity: 0, scale: 1.3 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 12, opacity: 0 }} transition={{ duration: 0.25 }}>
-          {sv.main}
-        </motion.div>
-      </AnimatePresence>
+      <div key={sv.main} className="dither-in">
+        <Num tone={active ? 'gold' : 'bone'}>{sv.main}</Num>
+      </div>
       <div className="pcard-sub">{sv.sub}</div>
       {session.enhancer.enabled && (
         <div className="pcard-perks">
@@ -180,7 +187,7 @@ function ShrineButton({ session }: { session: Session }) {
       <Btn variant="soul" block className="shrine-btn" onClick={onClick} disabled={!pending && eligible.length === 0} title={reason ?? undefined}>
         <PixelIcon id="eye" color="#8ff0ff" size={18} />
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
-        {eligible.length === 1 && <Souls n={eligible[0].souls} size={15} />}
+        {eligible.length === 1 && <Souls n={eligible[0].souls} size={16} />}
       </Btn>
       <AnimatePresence>
         {picking && (
@@ -201,7 +208,7 @@ function ShrineButton({ session }: { session: Session }) {
                   <span className="grow" style={{ textAlign: 'left', color: p.color }}>
                     {p.name}
                   </span>
-                  <Souls n={p.souls} />
+                  <Souls n={p.souls} size={24} />
                 </Btn>
               ))}
             </div>
@@ -247,7 +254,7 @@ function PlayerSheet({ session, pid, onClose }: { session: Session; pid: string;
 
   const section = (title: string, list: typeof p.perks) => (
     <div className="col" style={{ gap: 8 }}>
-      <h3 className="h-section">{title}</h3>
+      <Heading>{title}</Heading>
       {list.length === 0 && <div className="faint">Пусто.</div>}
       <div className="sheet-perks">
         {list.map((k) => {
@@ -278,16 +285,14 @@ function PlayerSheet({ session, pid, onClose }: { session: Session; pid: string;
       <div className="col" style={{ gap: 18 }}>
         {session.enhancer.enabled && (
           <div className="row wrap" style={{ gap: 10 }}>
-            <Souls n={p.souls} size={26} />
+            <Souls n={p.souls} size={32} />
             <Btn size="small" onClick={() => adjust(-1)}>
               −1
             </Btn>
             <Btn size="small" onClick={() => adjust(1)}>
               +1
             </Btn>
-            <span className="faint" style={{ fontSize: 13 }}>
-              правка ведущего
-            </span>
+            <span className="label faint">правка ведущего</span>
           </div>
         )}
         {section('Дары', blessings)}
@@ -311,6 +316,31 @@ const Stat = ({ label, v }: { label: string; v: number }) => (
     <div className="stat-l">{label}</div>
   </div>
 );
+
+/** Keep the screen awake while a game is on the table. */
+function useWakeLock(active: boolean) {
+  useEffect(() => {
+    if (!active || !('wakeLock' in navigator)) return;
+    let lock: { release: () => Promise<void> } | null = null;
+    let cancelled = false;
+    const request = () =>
+      (navigator as Navigator & { wakeLock: { request: (t: 'screen') => Promise<{ release: () => Promise<void> }> } }).wakeLock
+        .request('screen')
+        .then((l) => {
+          if (cancelled) void l.release();
+          else lock = l;
+        })
+        .catch(() => {});
+    void request();
+    const onVisible = () => document.visibilityState === 'visible' && request();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisible);
+      void lock?.release();
+    };
+  }, [active]);
+}
 
 /** Turn store changes into sounds and world effects. */
 function useSessionFx() {
@@ -337,6 +367,7 @@ function useSessionFx() {
         if (a.status === 'playing' && b.status === 'finished') {
           const winner = b.standings?.[0];
           const color = b.players.find((p) => p.id === winner)?.color ?? '#ffd070';
+          useNav.getState().showOsd('stop');
           setTimeout(() => {
             sfx.fanfare();
             fx({ type: 'win', color });

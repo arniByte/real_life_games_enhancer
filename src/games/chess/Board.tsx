@@ -5,6 +5,7 @@ import { player } from '../../core/session';
 import { AnimatePresence, Btn, Modal, PixelIcon } from '../../ui/components/kit';
 import { useNav } from '../../ui/nav';
 import { fx } from '../../three';
+import { PixelText, usePx } from '../../ui/pixel/PixelText';
 import { sfx } from '../../audio/sfx';
 import {
   chess,
@@ -35,6 +36,7 @@ export function ChessBoard({ session }: { session: Session }) {
   const [now, setNow] = useState(Date.now());
   const [ending, setEnding] = useState(false);
   const announce = useNav((s) => s.announce);
+  const px = usePx();
   const running = g.clock.enabled && g.clock.running;
 
   useEffect(() => {
@@ -116,7 +118,15 @@ export function ChessBoard({ session }: { session: Session }) {
                 <span style={{ color: p.color }}>{p.name}</span>
                 <span className="faint">· {sideName(side)}</span>
               </div>
-              <div className="clock-time title-font">{g.clock.enabled ? fmt(ms) : active ? 'ХОД' : '···'}</div>
+              <PixelText
+                text={g.clock.enabled ? fmt(ms) : active ? 'ХОД' : '···'}
+                font="pixel"
+                size={8}
+                scale={px * 2}
+                tone={g.clock.enabled && ms < 20000 && active ? 'blood' : side === 'w' ? 'bone' : 'violet'}
+                align="center"
+                chroma={false}
+              />
               <div className="clock-sub">
                 {active
                   ? g.clock.enabled && !g.clock.running
@@ -157,7 +167,7 @@ export function ChessBoard({ session }: { session: Session }) {
             ⏸ Пауза
           </Btn>
         )}
-        <div className="grow faint" style={{ fontSize: 13 }}>
+        <div className="grow faint chess-hint">
           {g.pending.length ? `В этом ходу: ${g.pending.join(', ')}` : 'Отметь события хода, потом жми свои часы'}
         </div>
         <Btn size="small" variant="primary" onClick={() => setEnding(true)}>
@@ -173,7 +183,7 @@ export function ChessBoard({ session }: { session: Session }) {
                 const p = player(session, idOf(session, side));
                 return (
                   <div key={side} className="row wrap" style={{ gap: 8 }}>
-                    <span className="grow" style={{ color: p.color, minWidth: 140 }}>
+                    <span className="grow label" style={{ color: p.color, minWidth: 140 }}>
                       {p.name} ({sideName(side).toLowerCase()}) побеждает:
                     </span>
                     <Btn size="small" variant="gold" onClick={() => finishWith(side, 'мат')}>

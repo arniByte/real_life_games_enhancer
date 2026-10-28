@@ -1,6 +1,7 @@
 import type { ActivePerk, GameId, PerkDef } from '../../core/types';
 import { RARITY_LABEL, durationLabel, fillText, perkDef } from '../../core/perks/registry';
 import { PixelIcon } from './kit';
+import { CardName } from '../pixel/Type';
 
 export const rarityClass = (def: Pick<PerkDef, 'kind' | 'rarity'>) => `${def.kind === 'curse' ? 'c' : 'r'}-${def.rarity}`;
 
@@ -31,7 +32,7 @@ export function PerkChip({ perk, onClick, size = 30 }: { perk: ActivePerk; onCli
       }}
       title={`${def.name}: ${fillText(def, perk.params)}`}
     >
-      <PixelIcon id={def.icon} color={color} size={size - 10} />
+      <PixelIcon id={def.icon} color={color} size={Math.max(10, size - 6)} />
       {perk.left !== undefined && <span className="perk-chip-n">{perk.left}</span>}
     </button>
   );
@@ -59,9 +60,9 @@ export function PerkCard({
         {def.kind === 'blessing' ? 'Дар' : 'Проклятие'} · {RARITY_LABEL[def.kind][def.rarity]}
       </div>
       <div className="perk-card-icon">
-        <PixelIcon id={def.icon} color={color} size={compact ? 34 : 64} />
+        <PixelIcon id={def.icon} color={color} size={compact ? 40 : 70} />
       </div>
-      <div className="perk-card-name">{def.name}</div>
+      <CardName size={compact ? 15 : 18}>{def.name}</CardName>
       <div className="perk-card-text">{fillText(def, params)}</div>
       <div className="perk-card-foot">
         <span>⧗ {durationLabel(def, game, left)}</span>

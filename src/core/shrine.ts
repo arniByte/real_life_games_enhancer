@@ -301,7 +301,11 @@ export function openPact(s: Session, pid: string) {
   const params: Record<string, string>[] = [];
   const weights = PACT_RARITY[s.enhancer.chaos];
   for (let i = 0; i < n; i++) {
-    const rarity = weightedPick(s, RARITY_ORDER, (r) => weights[r]);
+    // The last card is guaranteed to be rare or better if fate hasn't offered one yet.
+    const needsRare = i === n - 1 && choices.every((id) => perkDef(id).rarity === 'common');
+    const rarity = needsRare
+      ? weightedPick(s, RARITY_ORDER.slice(1), (r) => weights[r])
+      : weightedPick(s, RARITY_ORDER, (r) => weights[r]);
     const def = drawPerk(s, pid, 'blessing', rarity, chosen);
     if (!def) break;
     chosen.add(def.id);

@@ -107,6 +107,22 @@ describe('shrine offerings', () => {
     if (def.duration.type !== 'instant') expect(s.players[0].perks.some((k) => k.defId === chosen)).toBe(true);
   });
 
+  it('pact always offers at least one rare+ blessing', () => {
+    let s = rich(makeSession('universal', 2));
+    const rarities: Record<string, number> = {};
+    for (let i = 0; i < 300; i++) {
+      s = run(s, (d) => {
+        d.players[0].souls = 10;
+        openPact(d, 'p0');
+      });
+      const defs = s.pact!.choices.map(perkDef);
+      expect(defs.some((d) => d.rarity !== 'common')).toBe(true);
+      defs.forEach((d) => (rarities[d.rarity] = (rarities[d.rarity] ?? 0) + 1));
+      s = run(s, (d) => choosePact(d, 0));
+    }
+    expect(rarities.rare).toBeGreaterThan(rarities.common);
+  });
+
   it('hex is cheaper against the leader and blocked by a ward', () => {
     let s = rich(makeSession('universal', 3));
     s = run(s, (d) => {

@@ -1,8 +1,10 @@
 import { type ButtonHTMLAttributes, type ReactNode, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import type { IconId } from '../../core/types';
 import { ICONS } from '../icons';
 import { sfx } from '../../audio/sfx';
+import { Heading } from '../pixel/Type';
 
 export function PixelIcon({ id, color = 'currentColor', size = 20, title }: { id: IconId; color?: string; size?: number; title?: string }) {
   const rects = useMemo(() => {
@@ -94,22 +96,23 @@ export function Modal({ title, onClose, children, wide, footer }: { title: strin
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
-  return (
-    <motion.div className="modal-back" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+  // Portal: transformed / masked ancestors would otherwise trap a fixed overlay.
+  return createPortal(
+    <motion.div className="modal-back" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.12 }} onClick={onClose}>
       <motion.div
-        className="panel solid modal"
-        style={wide ? { width: 'min(980px, 100%)' } : undefined}
-        initial={{ y: 30, scale: 0.96, opacity: 0 }}
-        animate={{ y: 0, scale: 1, opacity: 1 }}
-        exit={{ y: 20, opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+        className="panel solid modal dither-in"
+        style={wide ? { width: 'min(1000px, 100%)' } : undefined}
+        initial={{ y: 24 }}
+        animate={{ y: 0 }}
+        exit={{ y: 12, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 32 }}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label={title}
       >
         <div className="modal-head">
-          <h2>{title}</h2>
+          <Heading>{title}</Heading>
           <Btn variant="ghost" icon onClick={() => { sfx.back(); onClose(); }} aria-label="Закрыть" silent>
             ✕
           </Btn>
@@ -117,9 +120,10 @@ export function Modal({ title, onClose, children, wide, footer }: { title: strin
         <div className="modal-body scroll" style={{ flex: 1 }}>
           {children}
         </div>
-        {footer && <div style={{ padding: '10px 14px', borderTop: '2px solid var(--line)' }}>{footer}</div>}
+        {footer && <div style={{ padding: 'calc(var(--pxn) * 3px)', borderTop: 'var(--px) solid #000', boxShadow: '0 calc(var(--px) * -1) 0 var(--line)' }}>{footer}</div>}
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.getElementById('portal') ?? document.body,
   );
 }
 
@@ -148,7 +152,7 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
     <div className="field">
       <div className="field-label">{label}</div>
       {children}
-      {hint && <div className="faint" style={{ fontSize: 13 }}>{hint}</div>}
+      {hint && <div className="faint" style={{ fontSize: 15 }}>{hint}</div>}
     </div>
   );
 }

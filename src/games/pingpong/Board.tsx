@@ -4,6 +4,7 @@ import { player } from '../../core/session';
 import { PixelIcon, motion } from '../../ui/components/kit';
 import { useNav } from '../../ui/nav';
 import { fx } from '../../three';
+import { Num } from '../../ui/pixel/Type';
 import { sfx } from '../../audio/sfx';
 import { gamesToWin, pong, scorePoint, server } from './logic';
 
@@ -40,8 +41,10 @@ export function PingPongBoard({ session }: { session: Session }) {
               <div className="pong-name">
                 <PixelIcon id={p.sigil} color={p.color} size={18} /> {p.name}
               </div>
-              <motion.div key={g.points[id]} className="pong-points title-font" initial={{ scale: 1.4, opacity: 0.4 }} animate={{ scale: 1, opacity: 1 }}>
-                {g.points[id]}
+              <motion.div key={g.points[id]} className="dither-in" initial={{ scale: 1.3 }} animate={{ scale: 1 }} transition={{ duration: 0.2, ease: (t: number) => Math.floor(t * 4) / 4 }}>
+                <Num size={40} tone={srv === id ? 'gold' : 'bone'}>
+                  {g.points[id]}
+                </Num>
               </motion.div>
               <div className="pong-games">
                 {Array.from({ length: gamesToWin(g) }, (_, k) => (
@@ -53,7 +56,7 @@ export function PingPongBoard({ session }: { session: Session }) {
           );
         })}
       </div>
-      <div className="faint" style={{ fontSize: 13, textAlign: 'center' }}>
+      <div className="pong-hint">
         {deuce ? 'Больше-меньше: подача каждое очко, нужен отрыв в 2' : 'Жми половину того, кто выиграл розыгрыш · подача меняется каждые 2 очка'}
       </div>
     </div>

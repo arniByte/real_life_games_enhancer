@@ -4,12 +4,14 @@ import { act } from '../../core/store';
 import { player } from '../../core/session';
 import { Btn, PixelIcon } from '../../ui/components/kit';
 import { fx } from '../../three';
+import { useNav } from '../../ui/nav';
 import { sfx } from '../../audio/sfx';
 import { addPoints, endRound, endUniversal, nextTurn, uni } from './logic';
 
 export function UniversalBoard({ session }: { session: Session }) {
   const g = uni(session);
   const [custom, setCustom] = useState<Record<string, string>>({});
+  const confirm = useNav((s) => s.confirm);
   if (session.status !== 'playing') return null;
   const current = g.order[g.current];
 
@@ -59,7 +61,7 @@ export function UniversalBoard({ session }: { session: Session }) {
         })}
       </div>
       <div className="row wrap" style={{ gap: 8 }}>
-        <Btn size="small" variant="ghost" onClick={() => { if (confirm('Завершить игру и подвести итоги?')) act((s) => endUniversal(s)); }}>
+        <Btn size="small" variant="ghost" onClick={() => confirm('Завершить игру и подвести итоги?', () => act((s) => endUniversal(s)), 'Итоги')}>
           Итоги
         </Btn>
         <Btn size="small" variant="ghost" onClick={() => { act((s) => endRound(s)); fx({ type: 'uni.round' }); sfx.confirm(); }}>

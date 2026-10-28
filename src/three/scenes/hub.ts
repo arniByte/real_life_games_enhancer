@@ -131,7 +131,7 @@ export class HubScene extends BaseScene {
         break;
       }
       case 'chess': {
-        const q = chessPiece('queen', ps1({ map: T.darkMarble(), color: 0xe0d0ff, emissive: 0x3a1a58 }), 10);
+        const q = chessPiece('queen', ps1({ map: T.darkMarble(), color: new THREE.Color(2.3, 2.0, 2.9), emissive: 0x3a1a58 }), 10);
         q.scale.setScalar(1.15);
         q.position.y = -0.75;
         g.add(q);

@@ -168,6 +168,11 @@ export class ShrineScene extends BaseScene {
     }
   }
 
+  dispose() {
+    super.dispose();
+    this.wheelTex.dispose();
+  }
+
   protected tick(dt: number) {
     const sp = this.spinning;
     if (sp) {
