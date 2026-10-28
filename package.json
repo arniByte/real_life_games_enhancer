@@ -18,6 +18,7 @@
     "@fontsource/ruslan-display": "^5.3.0",
     "@fontsource/tiny5": "^5.3.0",
     "@fontsource/vt323": "^5.3.0",
+    "chess.js": "^1.4.0",
     "immer": "^10.2.0",
     "motion": "^14.7.1",
     "react": "^19.3.1",

@@ -21,7 +21,21 @@ export interface ChessClock {
   startedAt: number | null;
 }
 
+export interface ChessMoveRecord {
+  san: string;
+  side: Side;
+  from: string;
+  to: string;
+}
+
 export interface ChessGame {
+  /** mirror: moves are played on the in-app 3D board; real: physical board, events by buttons. */
+  mode: 'mirror' | 'real';
+  fen: string;
+  moves: ChessMoveRecord[];
+  lastMove?: { from: string; to: string };
+  /** Set by «Двойной ход»: the next move keeps the turn. */
+  extraMove?: boolean;
   sides: Record<Side, string>;
   toMove: Side;
   moveNo: number;
