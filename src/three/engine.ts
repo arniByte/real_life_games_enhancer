@@ -201,6 +201,7 @@ export class RetroEngine {
     this.transitioning = false;
     const q = this.onIdleQueue.splice(0);
     q.forEach((fn) => fn());
+    this.listeners.forEach((fn) => fn({ type: 'scene.ready', id }));
   }
 
   /** Run after the pending transition settles (or now). */

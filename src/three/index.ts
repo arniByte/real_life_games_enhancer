@@ -26,6 +26,8 @@ let engine: RetroEngine | null = null;
 export function mountEngine(canvas: HTMLCanvasElement): RetroEngine {
   engine?.dispose();
   engine = new RetroEngine(canvas, (id) => FACTORIES[id]());
+  // Visual QA scripts reach the engine with ?debug in the URL.
+  if (location.search.includes('debug')) (window as unknown as { __engine: RetroEngine }).__engine = engine;
   return engine;
 }
 

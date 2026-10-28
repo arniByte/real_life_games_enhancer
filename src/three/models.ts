@@ -232,3 +232,47 @@ export function die(size = 0.4): THREE.Mesh {
   const mats = [1, 6, 2, 5, 3, 4].map((n) => ps1({ map: T.dieFace(n) }));
   return new THREE.Mesh(new THREE.BoxGeometry(size, size, size), mats);
 }
+
+/** Volumetric-looking light cone: additive, fading toward the floor. */
+export function lightCone(radiusBottom: number, height: number, color: THREE.ColorRepresentation, opacity = 0.12): THREE.Mesh {
+  const c = document.createElement('canvas');
+  c.width = 4;
+  c.height = 32;
+  const ctx = c.getContext('2d')!;
+  for (let y = 0; y < 32; y++) {
+    const a = Math.pow(1 - y / 32, 1.4);
+    ctx.fillStyle = `rgba(255,255,255,${a})`;
+    ctx.fillRect(0, y, 4, 1);
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  tex.colorSpace = THREE.NoColorSpace;
+  const mat = ps1({ map: tex, color, unlit: true, transparent: true, additive: true, opacity, side: THREE.DoubleSide, depthWrite: false, fog: 0.5 });
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(0.08, radiusBottom, height, 16, 4, true), mat);
+  m.renderOrder = 5;
+  return m;
+}
+
+/** Soft-edged dark disc under an object (no real shadows in PS1 land). */
+export function blobShadow(radius: number, opacity = 0.55): THREE.Mesh {
+  const c = document.createElement('canvas');
+  c.width = c.height = 16;
+  const ctx = c.getContext('2d')!;
+  for (let y = 0; y < 16; y++)
+    for (let x = 0; x < 16; x++) {
+      const d = Math.hypot(x - 7.5, y - 7.5) / 8;
+      if (d < 1) {
+        ctx.fillStyle = `rgba(0,0,0,${Math.min(1, (1 - d) * 1.6)})`;
+        ctx.fillRect(x, y, 1, 1);
+      }
+    }
+  const tex = new THREE.CanvasTexture(c);
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(radius * 2, radius * 2), ps1({ map: tex, unlit: true, transparent: true, opacity, depthWrite: false, color: 0xffffff }));
+  m.rotation.x = -Math.PI / 2;
+  // Unlit black multiply-ish: draw as dark alpha.
+  (m.material as THREE.ShaderMaterial).uniforms.uColor.value.setRGB(0, 0, 0);
+  return m;
+}

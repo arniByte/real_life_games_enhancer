@@ -4,7 +4,8 @@ export type SceneId = 'hub' | 'darts' | 'chess' | 'durak' | 'pingpong' | 'univer
 
 /** Events going the other way: from the 3D world to the UI. */
 export type SceneEvent =
-  | { type: 'chess.square'; square: string }
+  | { type: 'scene.ready'; id: SceneId }
+  | { type: 'chess.square'; square: string; under?: string }
   | { type: 'chess.hover'; square: string | null }
   | { type: 'darts.board'; n: number; m: 1 | 2 | 3 };
 
@@ -39,7 +40,7 @@ export type FxEvent =
   | { type: 'chess.capture'; piece: string }
   | { type: 'chess.check' }
   | { type: 'chess.move'; side: 'w' | 'b' }
-  | { type: 'chess.sync'; fen: string; lastMove?: { from: string; to: string }; check: string | null; anim?: ChessAnim; mirror: boolean }
+  | { type: 'chess.sync'; fen: string; lastMove?: { from: string; to: string }; check: string | null; anim?: ChessAnim; mirror: boolean; flip?: boolean }
   | { type: 'chess.highlight'; hl: ChessHighlight }
   | { type: 'chess.clock'; w: string; b: string; toMove: 'w' | 'b'; running: boolean; low: boolean }
   | { type: 'chess.view'; side: 'w' | 'b' }
