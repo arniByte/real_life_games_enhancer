@@ -485,8 +485,18 @@
 
 .darts-foot {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .darts-foot .darts-last {
+    display: none;
+  }
+  .darts-foot > .btn:last-child {
+    margin-left: auto;
+  }
 }
 
 .darts-last {
@@ -513,6 +523,14 @@
   .pad-btn.miss {
     grid-column: span 3;
   }
+}
+
+.darts-board-hint {
+  font-family: var(--font-ui);
+  font-size: var(--t-sm);
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: #9ff0ff;
 }
 
 /* ── Chess ──────────────────────────────────────────────── */

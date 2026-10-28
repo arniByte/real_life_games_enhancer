@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Session } from '../../core/types';
 import { act, useApp } from '../../core/store';
 import { player } from '../../core/session';
 import { Btn, motion } from '../../ui/components/kit';
 import { useNav } from '../../ui/nav';
-import { fx } from '../../three';
+import { fx, onScene } from '../../three';
 import { Num } from '../../ui/pixel/Type';
 import { sfx } from '../../audio/sfx';
 import { addDart, checkoutHint, commitTurn, currentId, darts, dartsAllowed, resolveTurn, turnMods, undoDart } from './logic';
@@ -28,11 +28,29 @@ export function DartsBoard({ session }: { session: Session }) {
   const last = g.history[g.history.length - 1];
   const announce = useNav((s) => s.announce);
 
-  const throwDart = (d: Dart) => {
+  const [aim, setAim] = useState<string | null>(null);
+  // Keypad or the 3D board as the input; the choice sticks per device.
+  const [pad, setPadState] = useState(() => {
+    try {
+      return localStorage.getItem('rlge.dartsPad') !== 'board';
+    } catch {
+      return true;
+    }
+  });
+  const setPad = (v: boolean) => {
+    setPadState(v);
+    try {
+      localStorage.setItem('rlge.dartsPad', v ? 'pad' : 'board');
+    } catch {
+      /* private mode */
+    }
+  };
+
+  const throwDart = (d: Dart, at?: { x: number; y: number }) => {
     if (session.status !== 'playing') return;
     const before = darts(useApp.getState().session!).history.length;
     act((s) => addDart(s, d));
-    fx({ type: 'darts.hit', n: d.n, m: d.m });
+    fx({ type: 'darts.hit', n: d.n, m: d.m, at });
     if (d.n === 0) sfx.miss();
     else sfx.dart(d.m);
     setRing(1);
@@ -65,6 +83,44 @@ export function DartsBoard({ session }: { session: Session }) {
     }
     fx({ type: 'darts.clear' });
   };
+
+  // The chalkboard on the tavern wall mirrors the score.
+  const chalk = () => {
+    const s = useApp.getState().session;
+    if (!s || s.gameId !== 'darts') return;
+    const gg = darts(s);
+    const cur = currentId(s);
+    const cp = player(s, cur);
+    const pv = resolveTurn(gg, gg.scores[cur], gg.turn, turnMods(cp));
+    const now = gg.mode === 'x01' ? pv.newScore : gg.scores[cur] + pv.scored;
+    const live = s.status === 'playing';
+    fx({
+      type: 'darts.score',
+      title: gg.mode === 'x01' ? `${gg.start}${gg.doubleOut ? ' · дабл' : ''}` : `раунд ${gg.round}/${gg.maxRounds}`,
+      rows: gg.order.map((id) => ({
+        name: player(s, id).name,
+        color: player(s, id).color,
+        score: String(id === cur && live ? now : gg.scores[id]),
+        active: id === cur && live,
+      })),
+      turn: Array.from({ length: dartsAllowed(cp) }, (_, i) => (gg.turn[i] ? dartLabel(gg.turn[i]) : '-')),
+    });
+  };
+  useEffect(chalk, [session]);
+
+  // Tapping the 3D board throws a dart exactly there.
+  const handlers = useRef({ throwDart, chalk });
+  handlers.current = { throwDart, chalk };
+  useEffect(
+    () =>
+      onScene((e) => {
+        if (e.type === 'darts.board') handlers.current.throwDart({ n: e.n, m: e.m }, e.at);
+        if (e.type === 'darts.aim') setAim(dartLabel({ n: e.n, m: e.m }));
+        if (e.type === 'darts.aimOff') setAim(null);
+        if (e.type === 'scene.ready' && e.id === 'darts') handlers.current.chalk();
+      }),
+    [],
+  );
 
   const endTurn = () => {
     const before = darts(useApp.getState().session!).history.length;
@@ -108,8 +164,9 @@ export function DartsBoard({ session }: { session: Session }) {
         </div>
       </div>
 
-      {(hint || effects.length > 0 || preview.bust) && (
+      {(hint || aim || effects.length > 0 || preview.bust) && (
         <div className="darts-info">
+          {aim && <span className="chip-hint">⌖ Прицел: {aim}</span>}
           {hint && <span className="chip-hint">✦ Закрытие: {hint}</span>}
           {effects.map((e) => (
             <span key={e} className="chip-effect">
@@ -119,36 +176,50 @@ export function DartsBoard({ session }: { session: Session }) {
         </div>
       )}
 
-      <div className="darts-rings">
-        {([1, 2, 3] as const).map((m) => (
-          <Btn key={m} selected={ring === m} onClick={() => setRing(m)} className={`ring-btn ring-${m}`}>
-            {m === 1 ? 'Сингл' : m === 2 ? 'Дабл ×2' : 'Трипл ×3'}
-          </Btn>
-        ))}
-      </div>
+      {!pad && <div className="darts-board-hint">⌖ Тапни по мишени — дротик ляжет точно туда</div>}
 
-      <div className="darts-pad">
-        {NUMBERS.map((n) => (
-          <Btn key={n} className={`pad-btn ring-${ring}`} onClick={() => throwDart({ n, m: ring })} silent>
-            {ring === 3 ? 'T' : ring === 2 ? 'D' : ''}
-            {n}
+      {pad && (
+        <>
+        <div className="darts-rings">
+          {([1, 2, 3] as const).map((m) => (
+            <Btn key={m} selected={ring === m} onClick={() => setRing(m)} className={`ring-btn ring-${m}`}>
+              {m === 1 ? 'Сингл' : m === 2 ? 'Дабл ×2' : 'Трипл ×3'}
+            </Btn>
+          ))}
+        </div>
+
+        <div className="darts-pad">
+          {NUMBERS.map((n) => (
+            <Btn key={n} className={`pad-btn ring-${ring}`} onClick={() => throwDart({ n, m: ring })} silent>
+              {ring === 3 ? 'T' : ring === 2 ? 'D' : ''}
+              {n}
+            </Btn>
+          ))}
+          <Btn className="pad-btn bull" onClick={() => throwDart({ n: 25, m: 1 })} silent>
+            25
           </Btn>
-        ))}
-        <Btn className="pad-btn bull" onClick={() => throwDart({ n: 25, m: 1 })} silent>
-          25
-        </Btn>
-        <Btn className="pad-btn bullseye" onClick={() => throwDart({ n: 25, m: 2 })} silent>
-          50
-        </Btn>
-        <Btn className="pad-btn miss" onClick={() => throwDart({ n: 0, m: 1 })} silent>
-          Мимо
-        </Btn>
-      </div>
+          <Btn className="pad-btn bullseye" onClick={() => throwDart({ n: 25, m: 2 })} silent>
+            50
+          </Btn>
+          <Btn className="pad-btn miss" onClick={() => throwDart({ n: 0, m: 1 })} silent>
+            Мимо
+          </Btn>
+        </div>
+        </>
+      )}
 
       <div className="darts-foot">
         <Btn variant="ghost" size="small" onClick={() => act((s) => undoDart(s))} disabled={g.turn.length === 0}>
           ⌫ Дротик
         </Btn>
+        <Btn variant="ghost" size="small" onClick={() => setPad(!pad)} title="Ввод: цифры или мишень">
+          {pad ? '⌖ Мишень' : '# Цифры'}
+        </Btn>
+        {!pad && (
+          <Btn variant="ghost" size="small" onClick={() => throwDart({ n: 0, m: 1 })} silent>
+            Мимо
+          </Btn>
+        )}
         <div className="grow faint darts-last">
           {last && (
             <>

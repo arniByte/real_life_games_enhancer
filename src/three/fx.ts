@@ -7,7 +7,9 @@ export type SceneEvent =
   | { type: 'scene.ready'; id: SceneId }
   | { type: 'chess.square'; square: string; under?: string }
   | { type: 'chess.hover'; square: string | null }
-  | { type: 'darts.board'; n: number; m: 1 | 2 | 3 };
+  | { type: 'darts.board'; n: number; m: 1 | 2 | 3; at: { x: number; y: number } }
+  | { type: 'darts.aim'; n: number; m: 1 | 2 | 3 }
+  | { type: 'darts.aimOff' };
 
 export interface ChessHighlight {
   selected: string | null;
@@ -33,7 +35,7 @@ export type FxEvent =
   | { type: 'win'; color?: string }
   | { type: 'hub.select'; index: number }
   | { type: 'hub.mode'; mode: 'title' | 'hub' | 'enter' }
-  | { type: 'darts.hit'; n: number; m: number }
+  | { type: 'darts.hit'; n: number; m: number; at?: { x: number; y: number } }
   | { type: 'darts.clear' }
   | { type: 'darts.bust' }
   | { type: 'darts.big'; score: number }
