@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { MAX_LIGHTS, Particles } from '../ps1';
 import { flickerFlames } from '../models';
-import type { FxEvent } from '../fx';
+import type { FxEvent, SceneEvent } from '../fx';
 
 export interface LightSlot {
   pos: THREE.Vector3;
@@ -50,6 +50,14 @@ export abstract class BaseScene {
   readonly look = new THREE.Vector3();
   /** Small idle sway applied on top of the camera pose. */
   sway = 0.04;
+  /** How far the view drifts toward the mouse (world units at the look target). */
+  parallax = 0.25;
+  /** Mouse position in NDC, smoothed (set by the engine). */
+  readonly mouse = new THREE.Vector2();
+  private mouseTarget = new THREE.Vector2();
+  /** Send an event to the UI (wired by the engine). */
+  emit: (e: SceneEvent) => void = () => {};
+  protected raycaster = new THREE.Raycaster();
   private tweens: Tween[] = [];
 
   constructor() {
@@ -66,6 +74,19 @@ export abstract class BaseScene {
 
   /** Play the entrance flight. */
   intro() {}
+
+  /** Pointer input forwarded from the UI layer (NDC coordinates). */
+  onPointer(_type: 'down' | 'move' | 'up', _ndc: THREE.Vector2) {}
+
+  setMouse(x: number, y: number) {
+    this.mouseTarget.set(x, y);
+  }
+
+  /** Raycast helper against a list of objects. */
+  protected hit(ndc: THREE.Vector2, objects: THREE.Object3D[]): THREE.Intersection | null {
+    this.raycaster.setFromCamera(ndc, this.camera);
+    return this.raycaster.intersectObjects(objects, true)[0] ?? null;
+  }
 
   addLight(slot: LightSlot): LightSlot {
     if (this.lights.length < MAX_LIGHTS) this.lights.push(slot);
@@ -114,8 +135,9 @@ export abstract class BaseScene {
     this.tick(dt);
     this.particles.update(dt);
     flickerFlames(this.scene, this.time);
-    const swayX = Math.sin(this.time * 0.4) * this.sway;
-    const swayY = Math.sin(this.time * 0.53 + 1) * this.sway * 0.6;
+    this.mouse.lerp(this.mouseTarget, Math.min(1, dt * 3));
+    const swayX = Math.sin(this.time * 0.4) * this.sway + this.mouse.x * this.parallax;
+    const swayY = Math.sin(this.time * 0.53 + 1) * this.sway * 0.6 + this.mouse.y * this.parallax * 0.6;
     this.camera.lookAt(this.look.x + swayX, this.look.y + swayY, this.look.z);
   }
 

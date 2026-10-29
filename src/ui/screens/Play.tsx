@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type PointerEvent as RPointerEvent } from 'react';
 import { AnimatePresence, Btn, Modal, PixelIcon, Souls, motion } from '../components/kit';
 import { PerkCard, PerkChip } from '../components/Perk';
 import { useNav } from '../nav';
@@ -10,7 +10,7 @@ import { BOARDS } from '../../games/boards';
 import { perkDef } from '../../core/perks/registry';
 import { log, player, spendCharge, removePerk } from '../../core/session';
 import { shrineBlock } from '../../core/shrine';
-import { fx } from '../../three';
+import { fx, pointerToScene } from '../../three';
 import { sfx } from '../../audio/sfx';
 import { Shrine } from './Shrine';
 import { Results } from './Results';
@@ -67,7 +67,12 @@ export function Play() {
   }
 
   return (
-    <div className="play" style={{ ['--accent' as string]: meta.accent }}>
+    <div
+      className="play"
+      style={{ ['--accent' as string]: meta.accent }}
+      onPointerDown={(e) => toScene('down', e)}
+      onPointerMove={(e) => e.pointerType === 'mouse' && toScene('move', e)}
+    >
       <div className="play-top">
         <Btn size="small" icon onClick={() => { open('pause'); useNav.getState().showOsd('pause'); }} aria-label="Меню">
           ☰
@@ -107,6 +112,13 @@ export function Play() {
       <AnimatePresence>{session.status === 'finished' && <Results key="results" session={session} />}</AnimatePresence>
     </div>
   );
+}
+
+/** Taps on the empty part of the screen reach the 3D world (board squares, the dartboard…). */
+function toScene(type: 'down' | 'move', e: RPointerEvent) {
+  const t = e.target as HTMLElement;
+  if (t !== e.currentTarget && !t.closest('.play-mid')) return;
+  pointerToScene(type, e.clientX, e.clientY);
 }
 
 function PlayerCard({ session, pid, active, place, onOpen }: { session: Session; pid: string; active: boolean; place: number; onOpen: () => void }) {

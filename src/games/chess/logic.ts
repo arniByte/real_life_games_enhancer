@@ -131,7 +131,7 @@ export const chessLogic: GameLogic = {
     const control = String(opts.clock ?? '5+3');
     const [base, inc] = control === 'none' ? [0, 0] : control.split('+').map(Number);
     const game: ChessGame = {
-      mode: opts.board === 'mirror' ? 'mirror' : 'real',
+      mode: opts.board === 'real' ? 'real' : 'mirror',
       fen: START_FEN,
       moves: [],
       sides: { w: players[0].id, b: players[1].id },
@@ -342,7 +342,7 @@ export function playMove(s: Session, from: string, to: string, promotion = 'q', 
 }
 
 /** Perks that unlock special moves on the 3D board. */
-export const PERK_MOVES: Record<string, 'free' | 'swap' | 'promote' | 'rise'> = {
+export const PERK_MOVES: Record<string, 'free' | 'swap' | 'promote' | 'rise' | 'remove'> = {
   c_dash: 'free',
   c_retreat: 'free',
   c_leap: 'free',
@@ -350,13 +350,14 @@ export const PERK_MOVES: Record<string, 'free' | 'swap' | 'promote' | 'rise'> = 
   c_soulswap: 'swap',
   c_coronation: 'promote',
   c_rise: 'rise',
+  c_tribute: 'remove',
 };
 
 /**
  * A move granted by a perk. The table trusts the player to respect the perk's wording;
  * the app only blocks the obviously impossible (moving the foe's pieces, taking a king).
  */
-export function perkMove(s: Session, uid: string, from: string, to: string, now = Date.now()): MoveOutcome | null {
+export function perkMove(s: Session, uid: string, from: string, to: string, now = Date.now(), promo = 'q'): MoveOutcome | null {
   const g = chess(s);
   if (g.result || g.mode !== 'mirror') return null;
   const side = g.toMove;
@@ -369,6 +370,17 @@ export function perkMove(s: Session, uid: string, from: string, to: string, now 
   const target = c.get(to as Square);
   let out: MoveOutcome;
 
+  if (kind === 'remove') {
+    // «Дань»: the foe picks one of your pawns and it leaves the board. Not a move.
+    if (!piece || piece.color !== side || piece.type !== 'p') return null;
+    c.remove(from as Square);
+    g.captured[otherSide(side)].push('p');
+    spendCharge(s, pid, uid, true);
+    log(s, `${player(s, pid).name} платит «Дань»: пешка ${from} снята`, 'bad');
+    g.fen = c.fen();
+    return { from, to: from, piece: 'p', color: side, captured: 'p', capturedAt: from, check: false, mate: false, san: `${from}✕` };
+  }
+
   if (kind === 'rise') {
     const rank = side === 'w' ? '2' : '7';
     if (target || to[1] !== rank || !g.captured[otherSide(side)].includes('p')) return null;
@@ -377,10 +389,11 @@ export function perkMove(s: Session, uid: string, from: string, to: string, now 
     out = { from: to, to, piece: 'p', color: side, check: false, mate: false, san: `${to}✝` };
   } else if (kind === 'promote') {
     if (!piece || piece.color !== side || piece.type !== 'p' || from !== to) return null;
+    const type = (['q', 'r', 'b', 'n'].includes(promo) ? promo : 'q') as 'q' | 'r' | 'b' | 'n';
     c.remove(from as Square);
-    c.put({ type: 'q', color: side }, from as Square);
+    c.put({ type, color: side }, from as Square);
     registerPromotion(s);
-    out = { from, to, piece: 'p', color: side, promotion: 'q', check: false, mate: false, san: `${from}=Q♛` };
+    out = { from, to, piece: 'p', color: side, promotion: type, check: false, mate: false, san: `${from}=${type.toUpperCase()}` };
   } else {
     if (!piece || piece.color !== side || from === to) return null;
     if (target?.type === 'k') return null;
@@ -421,4 +434,92 @@ export function armTwin(s: Session, uid: string) {
   spendCharge(s, pid, uid, true);
   g.extraMove = true;
   log(s, `${player(s, pid).name}: «Двойной ход» — следующий ход без передачи очереди`, 'epic');
+}
+
+/** What stands on a square right now. */
+export function pieceAt(s: Session, sq: string): { type: string; color: Side } | null {
+  const p = load(chess(s).fen).get(sq as Square);
+  return p ? { type: p.type, color: p.color as Side } : null;
+}
+
+/** Square of the king that is in check (side to move), if any. */
+export function checkSquare(s: Session): string | null {
+  const c = load(chess(s).fen);
+  if (!c.inCheck()) return null;
+  const turn = c.turn();
+  for (const row of c.board()) for (const p of row) if (p && p.type === 'k' && p.color === turn) return p.square;
+  return null;
+}
+
+/** A pawn reaching the last rank needs a piece chosen. */
+export function isPromotion(s: Session, from: string, to: string): boolean {
+  const p = pieceAt(s, from);
+  return !!p && p.type === 'p' && (to[1] === '8' || to[1] === '1');
+}
+
+const sqName = (f: number, r: number) => (f >= 0 && f < 8 && r >= 1 && r <= 8 ? `${'abcdefgh'[f]}${r}` : null);
+
+/**
+ * Squares to light up for a perk move: with no `from`, the pieces that may use it;
+ * with `from`, where that piece may go. A guide, not a referee — the table trusts the wording.
+ */
+export function perkTargets(s: Session, uid: string, from: string | null): string[] {
+  const g = chess(s);
+  const side = g.toMove;
+  const perk = player(s, idOf(s, side)).perks.find((k) => k.uid === uid);
+  const kind = perk && PERK_MOVES[perk.defId];
+  if (!perk || !kind) return [];
+  const c = load(g.fen);
+  const own = (sq: string | null) => {
+    const p = sq ? c.get(sq as Square) : null;
+    return p && p.color === side ? p : null;
+  };
+  const empty = (sq: string | null) => !!sq && !c.get(sq as Square);
+  const enterable = (sq: string | null) => {
+    if (!sq) return false;
+    const p = c.get(sq as Square);
+    return !p || (p.color !== side && p.type !== 'k');
+  };
+  const dir = side === 'w' ? 1 : -1;
+  const all: string[] = [];
+  for (let r = 1; r <= 8; r++) for (let f = 0; f < 8; f++) all.push(sqName(f, r)!);
+
+  if (kind === 'rise') return g.captured[otherSide(side)].includes('p') ? all.filter((sq) => sq[1] === (side === 'w' ? '2' : '7') && empty(sq)) : [];
+  if (kind === 'remove') return all.filter((sq) => own(sq)?.type === 'p');
+  if (kind === 'promote') return all.filter((sq) => own(sq)?.type === 'p' && sq[1] === (side === 'w' ? '6' : '3'));
+
+  const id = perk.defId;
+  const canUse = (sq: string) => {
+    const p = own(sq);
+    if (!p) return false;
+    if (id === 'c_dash' || id === 'c_retreat') return p.type === 'p';
+    if (id === 'c_kingstep') return p.type === 'k';
+    return p.type !== 'k';
+  };
+  if (!from) return all.filter(canUse);
+  if (!canUse(from)) return [];
+  const f = from.charCodeAt(0) - 97;
+  const r = Number(from[1]);
+  switch (id) {
+    case 'c_dash': {
+      const mid = sqName(f, r + dir);
+      const to = sqName(f, r + 2 * dir);
+      return empty(mid) && empty(to) ? [to!] : [];
+    }
+    case 'c_retreat': {
+      const to = sqName(f, r - dir);
+      return empty(to) ? [to!] : [];
+    }
+    case 'c_leap':
+      return [[1, 2], [2, 1], [-1, 2], [-2, 1], [1, -2], [2, -1], [-1, -2], [-2, -1]]
+        .map(([df, dr]) => sqName(f + df, r + dr))
+        .filter((sq): sq is string => enterable(sq));
+    case 'c_kingstep':
+      return [[0, 1], [0, -1], [1, 0], [-1, 0]]
+        .filter(([df, dr]) => empty(sqName(f + df, r + dr)) && enterable(sqName(f + 2 * df, r + 2 * dr)))
+        .map(([df, dr]) => sqName(f + 2 * df, r + 2 * dr)!);
+    case 'c_soulswap':
+      return all.filter((sq) => sq !== from && own(sq) && own(sq)!.type !== 'k');
+  }
+  return [];
 }

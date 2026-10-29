@@ -641,3 +641,66 @@ export function drawWheel(canvas: HTMLCanvasElement, sectors: WheelSector[]) {
   ctx.fillStyle = rgb(200, 30, 40);
   ctx.fillRect(c - 4, c - 4, 8, 8);
 }
+
+// ── Chessboard ───────────────────────────────────────────────
+
+/** 8×8 marble board, 8px squares with veins. */
+export const chessSquares = () =>
+  make(
+    'chessSquares',
+    64,
+    64,
+    (ctx, _w, _h, rnd) => {
+      for (let r = 0; r < 8; r++)
+        for (let f = 0; f < 8; f++) {
+          const light = (r + f) % 2 === 0;
+          const base = light ? [214, 202, 176] : [44, 30, 46];
+          for (let y = 0; y < 8; y++)
+            for (let x = 0; x < 8; x++) {
+              const n = 1 + (rnd() - 0.5) * 0.14;
+              ctx.fillStyle = rgb(base[0] * n, base[1] * n, base[2] * n);
+              ctx.fillRect(f * 8 + x, r * 8 + y, 1, 1);
+            }
+          ctx.fillStyle = light ? rgb(170, 158, 140) : rgb(82, 48, 96);
+          let vx = rnd() * 8;
+          for (let y = 0; y < 8; y++) {
+            ctx.fillRect(f * 8 + (vx | 0), r * 8 + y, 1, 1);
+            vx = Math.max(0, Math.min(7, vx + (rnd() - 0.5) * 2));
+          }
+        }
+    },
+    false,
+  );
+
+/** Board frame with file/rank letters. */
+export const chessFrame = () =>
+  make(
+    'chessFrame',
+    128,
+    128,
+    (ctx, w, h, rnd) => {
+      for (let y = 0; y < h; y++)
+        for (let x = 0; x < w; x++) {
+          const g = 1 + Math.sin(x * 0.7 + Math.sin(y * 0.2) * 3) * 0.08 + (rnd() - 0.5) * 0.08;
+          ctx.fillStyle = rgb(70 * g, 38 * g, 22 * g);
+          ctx.fillRect(x, y, 1, 1);
+        }
+      ctx.fillStyle = rgb(210, 170, 80);
+      ctx.font = '8px Tiny5, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const inner = 128 * (2.88 / 3.28);
+      const off = (128 - inner) / 2;
+      const sq = inner / 8;
+      for (let i = 0; i < 8; i++) {
+        const c = off + sq * (i + 0.5);
+        ctx.fillText('abcdefgh'[i], c, 128 - off / 2);
+        ctx.fillText('abcdefgh'[i], c, off / 2);
+        ctx.fillText(String(8 - i), off / 2, c);
+        ctx.fillText(String(8 - i), 128 - off / 2, c);
+      }
+      ctx.strokeStyle = rgb(200, 160, 70);
+      ctx.strokeRect(off - 1.5, off - 1.5, inner + 3, inner + 3);
+    },
+    false,
+  );
