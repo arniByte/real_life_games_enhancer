@@ -54,7 +54,7 @@ export class TavernScene extends BaseScene {
 
   build() {
     this.baseFov = 55;
-    this.parallax = 0.08;
+    this.parallax = 0.03;
     this.sway = 0.015;
     this.ambient.setRGB(0.2, 0.13, 0.1);
     this.fogColor.setRGB(0.05, 0.03, 0.02);

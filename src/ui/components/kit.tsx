@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes, type ReactNode, useEffect, useMemo } from 'react';
+import { type ButtonHTMLAttributes, type ReactNode, type Ref, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import type { IconId } from '../../core/types';
@@ -44,6 +44,7 @@ type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   selected?: boolean;
   icon?: boolean;
   silent?: boolean;
+  ref?: Ref<HTMLButtonElement>;
 };
 
 export function Btn({ variant, size, block, selected, icon, silent, className = '', onClick, onMouseEnter, ...rest }: BtnProps) {
@@ -158,3 +159,68 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 }
 
 export { AnimatePresence, motion };
+
+const NARROW = '(max-width: 760px)';
+
+/** Phone-sized screen: secondary controls fold into popovers. */
+export function useNarrow(): boolean {
+  const [narrow, setNarrow] = useState(() => typeof matchMedia !== 'undefined' && matchMedia(NARROW).matches);
+  useEffect(() => {
+    const mq = matchMedia(NARROW);
+    const on = () => setNarrow(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return narrow;
+}
+
+/**
+ * Secondary actions. On a wide screen they sit inline; on a phone they fold behind
+ * a «⋯» button and pop up above it. Any tap inside the popup closes it.
+ */
+export function More({ label = 'Ещё ▴', title = 'Ещё', children, always }: { label?: ReactNode; title?: string; children: ReactNode; always?: boolean }) {
+  const narrow = useNarrow();
+  const [open, setOpen] = useState(false);
+  const btn = useRef<HTMLButtonElement>(null);
+  const pop = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ left?: number; right?: number; bottom: number }>({ right: 8, bottom: 8 });
+
+  useEffect(() => {
+    if (!open) return;
+    const r = btn.current?.getBoundingClientRect();
+    // Open toward the middle of the screen so the menu never runs off an edge.
+    if (r) {
+      const bottom = window.innerHeight - r.top + 6;
+      setPos(r.left + r.width / 2 < window.innerWidth / 2 ? { left: Math.max(8, r.left), bottom } : { right: Math.max(8, window.innerWidth - r.right), bottom });
+    }
+    const off = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (!pop.current?.contains(t) && !btn.current?.contains(t)) setOpen(false);
+    };
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('pointerdown', off);
+    window.addEventListener('keydown', esc);
+    return () => {
+      document.removeEventListener('pointerdown', off);
+      window.removeEventListener('keydown', esc);
+    };
+  }, [open]);
+
+  if (!narrow && !always) return <>{children}</>;
+  const portal = document.getElementById('portal');
+  return (
+    <>
+      <Btn ref={btn} size="small" variant="ghost" selected={open} onClick={() => setOpen((o) => !o)} aria-expanded={open} title={title}>
+        {label}
+      </Btn>
+      {open &&
+        portal &&
+        createPortal(
+          <div ref={pop} className="more-pop panel solid dither-in" style={pos} onClick={() => setOpen(false)} role="menu">
+            {children}
+          </div>,
+          portal,
+        )}
+    </>
+  );
+}

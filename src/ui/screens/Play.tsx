@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type PointerEvent as RPointerEvent } from 'react';
-import { AnimatePresence, Btn, Modal, PixelIcon, Souls, motion } from '../components/kit';
+import { AnimatePresence, Btn, Modal, PixelIcon, Souls, motion, useNarrow } from '../components/kit';
 import { PerkCard, PerkChip } from '../components/Perk';
 import { useNav } from '../nav';
 import { act, useApp } from '../../core/store';
@@ -21,6 +21,24 @@ export function Play() {
   const canUndo = useApp((s) => s.past.length > 0);
   const canRedo = useApp((s) => s.future.length > 0);
   const { open, shrineFor, sheetFor, openSheet, go } = useNav();
+  const narrow = useNarrow();
+  // On a phone the console folds down to one bar so the world (and the board in it) gets the screen.
+  const [folded, setFoldedState] = useState(() => {
+    try {
+      return localStorage.getItem('rlge.console') === 'folded';
+    } catch {
+      return false;
+    }
+  });
+  const setFolded = (v: boolean) => {
+    setFoldedState(v);
+    try {
+      localStorage.setItem('rlge.console', v ? 'folded' : 'open');
+    } catch {
+      /* private mode */
+    }
+  };
+  const fold = narrow && folded;
 
   useSessionFx();
   useWakeLock(session?.status === 'playing');
@@ -93,7 +111,7 @@ export function Play() {
 
       <div className="players">
         {session.players.map((p) => (
-          <PlayerCard key={p.id} session={session} pid={p.id} active={p.id === current} place={standings.indexOf(p.id) + 1} onOpen={() => openSheet(p.id)} />
+          <PlayerCard key={p.id} session={session} pid={p.id} active={p.id === current} place={standings.indexOf(p.id) + 1} onOpen={() => openSheet(p.id)} compact={narrow} />
         ))}
       </div>
 
@@ -102,9 +120,34 @@ export function Play() {
       </div>
 
       {session.status === 'playing' && (
-        <motion.div className="play-console panel dither-in" initial={{ y: 30 }} animate={{ y: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 26 }}>
-          {session.enhancer.enabled && <ShrineButton session={session} />}
-          <Board session={session} />
+        <motion.div
+          className={`play-console panel dither-in ${fold ? 'folded' : ''}`}
+          initial={{ y: 30 }}
+          animate={{ y: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+        >
+          {(session.enhancer.enabled || narrow) && (
+            <div className="console-bar">
+              {session.enhancer.enabled ? <ShrineButton session={session} compact={narrow} /> : <div className="grow console-status">{logic.status(session)}</div>}
+              {narrow && (
+                <Btn
+                  size="small"
+                  icon
+                  className="fold-btn"
+                  onClick={() => setFolded(!folded)}
+                  aria-expanded={!fold}
+                  aria-label={fold ? 'Развернуть пульт' : 'Свернуть пульт'}
+                  title={fold ? 'Развернуть пульт' : 'Свернуть пульт'}
+                >
+                  {fold ? '▲' : '▼'}
+                </Btn>
+              )}
+            </div>
+          )}
+          {/* Hidden, not unmounted: the board keeps listening to taps on the 3D world. */}
+          <div className="console-body" hidden={fold}>
+            <Board session={session} />
+          </div>
         </motion.div>
       )}
 
@@ -121,7 +164,7 @@ function toScene(type: 'down' | 'move', e: RPointerEvent) {
   pointerToScene(type, e.clientX, e.clientY);
 }
 
-function PlayerCard({ session, pid, active, place, onOpen }: { session: Session; pid: string; active: boolean; place: number; onOpen: () => void }) {
+function PlayerCard({ session, pid, active, place, onOpen, compact }: { session: Session; pid: string; active: boolean; place: number; onOpen: () => void; compact?: boolean }) {
   const p = player(session, pid);
   const sv = GAME_LOGIC[session.gameId].scoreView(session, pid);
   return (
@@ -132,8 +175,15 @@ function PlayerCard({ session, pid, active, place, onOpen }: { session: Session;
         {session.enhancer.enabled && <Souls n={p.souls} size={16} />}
       </div>
       <div key={sv.main} className="dither-in">
-        <Num tone={active ? 'gold' : 'bone'}>{sv.main}</Num>
+        <Num tone={active ? 'gold' : 'bone'} scale={compact ? 1 : 2}>
+          {sv.main}
+        </Num>
       </div>
+      {compact && session.enhancer.enabled && p.perks.length > 0 && (
+        <span className="pcard-count" title="Дары и проклятия">
+          ✦{p.perks.length}
+        </span>
+      )}
       <div className="pcard-sub">{sv.sub}</div>
       {session.enhancer.enabled && (
         <div className="pcard-perks">
@@ -167,7 +217,7 @@ function Feed({ session }: { session: Session }) {
   );
 }
 
-function ShrineButton({ session }: { session: Session }) {
+function ShrineButton({ session, compact }: { session: Session; compact?: boolean }) {
   const openShrine = useNav((s) => s.openShrine);
   const [picking, setPicking] = useState(false);
   const logic = GAME_LOGIC[session.gameId];
@@ -192,11 +242,13 @@ function ShrineButton({ session }: { session: Session }) {
       ? `Алтарь · ${eligible[0].name}`
       : eligible.length > 1
         ? 'Алтарь Судеб'
-        : reason ?? 'Алтарь закрыт';
+        : compact
+          ? 'Алтарь закрыт'
+          : reason ?? 'Алтарь закрыт';
 
   return (
     <>
-      <Btn variant="soul" block className="shrine-btn" onClick={onClick} disabled={!pending && eligible.length === 0} title={reason ?? undefined}>
+      <Btn variant="soul" block className={`shrine-btn ${compact ? 'compact' : ''}`} onClick={onClick} disabled={!pending && eligible.length === 0} title={reason ?? undefined}>
         <PixelIcon id="eye" color="#8ff0ff" size={18} />
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
         {eligible.length === 1 && <Souls n={eligible[0].souls} size={16} />}

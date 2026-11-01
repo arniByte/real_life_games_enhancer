@@ -1445,3 +1445,149 @@
     min-height: 230px;
   }
 }
+
+/* ── Console bar (all sizes) ────────────────────────────── */
+
+.console-bar {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--pxn) * 2px);
+}
+
+.console-bar .shrine-btn {
+  flex: 1;
+  min-width: 0;
+}
+
+.console-status {
+  font-family: var(--font-ui);
+  font-size: var(--t-sm);
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--bone-dim);
+}
+
+.console-body[hidden] {
+  display: none;
+}
+
+.more-pop {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: calc(var(--pxn) * 2px);
+  min-width: 200px;
+  max-width: calc(100vw - 16px);
+  padding: calc(var(--pxn) * 2px);
+}
+
+.more-pop .btn {
+  justify-content: flex-start;
+}
+
+.more-note {
+  font-family: var(--font-osd);
+  font-size: 16px;
+  line-height: 1.1;
+  color: var(--bone-dim);
+  max-width: 280px;
+  word-break: break-word;
+}
+
+.pcard-count {
+  font-family: var(--font-ui);
+  font-size: var(--t-sm);
+  line-height: 1;
+  color: #ffc23a;
+}
+
+/* ── Phones: one-line players, slim console, events up top ─ */
+
+@media (max-width: 760px) {
+  .play-top {
+    padding: 6px 8px 0;
+  }
+  .play-status {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .players {
+    gap: calc(var(--pxn) * 2px);
+    padding: calc(var(--pxn) * 3px) 8px calc(var(--pxn) * 2px);
+  }
+  .pcard {
+    flex: 0 0 auto;
+    min-width: 0;
+    max-width: 62vw;
+    flex-direction: row;
+    align-items: center;
+    gap: calc(var(--pxn) * 2px);
+    padding: calc(var(--pxn) * 1px) calc(var(--pxn) * 2px);
+  }
+  .pcard.active {
+    transform: none;
+  }
+  .pcard.active::before {
+    top: auto;
+    bottom: calc(var(--pxn) * -9px);
+    content: '▲';
+  }
+  .pcard-head {
+    flex: 0 1 auto;
+  }
+  .pcard-name {
+    flex: 0 1 auto;
+    max-width: 10ch;
+  }
+  .pcard-sub,
+  .pcard-perks,
+  .pcard-place {
+    display: none;
+  }
+  .play-mid {
+    align-items: flex-start;
+    padding: 4px 8px;
+  }
+  .feed-line:nth-last-child(n + 3) {
+    display: none;
+  }
+  .play-console {
+    width: calc(100% - 12px);
+    margin-bottom: 6px;
+    padding: calc(var(--pxn) * 1px) calc(var(--pxn) * 2px);
+    gap: calc(var(--pxn) * 2px);
+    max-height: 62vh;
+  }
+  .play-console.folded {
+    padding-top: calc(var(--pxn) * 1px);
+    padding-bottom: calc(var(--pxn) * 1px);
+  }
+  .shrine-btn.compact {
+    min-height: 40px;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .fold-btn {
+    min-width: 44px;
+    min-height: 40px;
+  }
+  .darts-pad .pad-btn {
+    min-height: 40px;
+  }
+  .darts-rings .btn {
+    min-height: 36px;
+  }
+  .mmoves {
+    display: none;
+  }
+  /* Names are already in the players strip: the clock keeps the sigil and the time. */
+  .mclock .clock-who > span:not(.faint) {
+    display: none;
+  }
+  .mclock .clock-captured:empty {
+    display: none;
+  }
+}

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Session } from '../../core/types';
 import { act, useApp } from '../../core/store';
 import { player } from '../../core/session';
-import { Btn, motion } from '../../ui/components/kit';
+import { Btn, More, motion } from '../../ui/components/kit';
 import { useNav } from '../../ui/nav';
 import { fx, onScene } from '../../three';
 import { Num } from '../../ui/pixel/Type';
@@ -212,9 +212,11 @@ export function DartsBoard({ session }: { session: Session }) {
         <Btn variant="ghost" size="small" onClick={() => act((s) => undoDart(s))} disabled={g.turn.length === 0}>
           ⌫ Дротик
         </Btn>
-        <Btn variant="ghost" size="small" onClick={() => setPad(!pad)} title="Ввод: цифры или мишень">
-          {pad ? '⌖ Мишень' : '# Цифры'}
-        </Btn>
+        <More title="Способ ввода">
+          <Btn variant="ghost" size="small" onClick={() => setPad(!pad)} title="Ввод: цифры или мишень">
+            {pad ? '⌖ Кидать по мишени' : '# Ввод цифрами'}
+          </Btn>
+        </More>
         {!pad && (
           <Btn variant="ghost" size="small" onClick={() => throwDart({ n: 0, m: 1 })} silent>
             Мимо

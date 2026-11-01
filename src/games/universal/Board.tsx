@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Session } from '../../core/types';
 import { act } from '../../core/store';
 import { player } from '../../core/session';
-import { Btn, PixelIcon } from '../../ui/components/kit';
+import { Btn, More, PixelIcon } from '../../ui/components/kit';
 import { fx } from '../../three';
 import { useNav } from '../../ui/nav';
 import { sfx } from '../../audio/sfx';
@@ -61,12 +61,14 @@ export function UniversalBoard({ session }: { session: Session }) {
         })}
       </div>
       <div className="row wrap" style={{ gap: 8 }}>
-        <Btn size="small" variant="ghost" onClick={() => confirm('Завершить игру и подвести итоги?', () => act((s) => endUniversal(s)), 'Итоги')}>
-          Итоги
-        </Btn>
-        <Btn size="small" variant="ghost" onClick={() => { act((s) => endRound(s)); fx({ type: 'uni.round' }); sfx.confirm(); }}>
-          Конец раунда
-        </Btn>
+        <More>
+          <Btn size="small" variant="ghost" onClick={() => { act((s) => endRound(s)); fx({ type: 'uni.round' }); sfx.confirm(); }}>
+            Конец раунда
+          </Btn>
+          <Btn size="small" variant="ghost" onClick={() => confirm('Завершить игру и подвести итоги?', () => act((s) => endUniversal(s)), 'Итоги')}>
+            Итоги
+          </Btn>
+        </More>
         <div className="grow" />
         <Btn
           variant="gold"
