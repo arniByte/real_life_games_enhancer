@@ -268,7 +268,7 @@
   padding: 2px calc(var(--pxn) * 3px);
   border: none;
   background-image: var(--d-dark);
-  box-shadow: 0 0 0 var(--px) #000, 0 0 0 calc(var(--px) * 2) #2c2230;
+  box-shadow: 0 0 0 var(--px) #000, 0 0 0 calc(var(--px) * 2) #2c2c2a;
   color: var(--bone-dim);
   font-family: var(--font-ui);
   font-size: var(--t-sm);
@@ -400,7 +400,7 @@
   font-size: var(--t-sm);
   color: var(--bone-faint);
   background-image: var(--d-dark);
-  box-shadow: 0 0 0 var(--px) #000, 0 0 0 calc(var(--px) * 2) #2c2230;
+  box-shadow: 0 0 0 var(--px) #000, 0 0 0 calc(var(--px) * 2) #2c2c2a;
 }
 
 .dart-slot.on {
@@ -427,12 +427,12 @@
 
 .chip-hint {
   color: var(--gold);
-  box-shadow: 0 0 0 var(--px) #000, 0 0 0 calc(var(--px) * 2) #6c5016;
+  box-shadow: 0 0 0 var(--px) #000, 0 0 0 calc(var(--px) * 2) #5a0a0e;
 }
 
 .chip-effect {
-  color: var(--soul);
-  box-shadow: 0 0 0 var(--px) #000, 0 0 0 calc(var(--px) * 2) #1c5560;
+  color: var(--bone);
+  box-shadow: 0 0 0 var(--px) #000, 0 0 0 calc(var(--px) * 2) #3a3a38;
 }
 
 .darts-rings {
@@ -465,7 +465,7 @@
 }
 
 .pad-btn.ring-3 {
-  color: #a8ffc4;
+  color: #ecebe6;
 }
 
 .pad-btn.bull {
@@ -490,10 +490,16 @@
   gap: 8px;
 }
 
+/* The feed already tells the last turn; the slot is better spent on buttons. */
+.darts-foot .darts-last {
+  display: none;
+}
+
+.darts-foot > .btn:last-child {
+  margin-left: auto;
+}
+
 @media (max-width: 640px) {
-  .darts-foot .darts-last {
-    display: none;
-  }
   .darts-foot > .btn:last-child {
     margin-left: auto;
   }
@@ -528,9 +534,9 @@
 .darts-board-hint {
   font-family: var(--font-ui);
   font-size: var(--t-sm);
-  line-height: 1.2;
+  line-height: 1.6;
   text-transform: uppercase;
-  color: #9ff0ff;
+  color: var(--bone-dim);
 }
 
 /* ── Chess ──────────────────────────────────────────────── */
@@ -628,7 +634,7 @@
 .chess-hint {
   font-family: var(--font-ui);
   font-size: var(--t-sm);
-  line-height: 1.1;
+  line-height: 1.5;
   text-transform: uppercase;
 }
 
@@ -695,9 +701,9 @@
 }
 
 .mmoves {
-  font-family: var(--font-osd, monospace);
-  font-size: 16px;
-  line-height: 1.1;
+  font-family: var(--font-ui);
+  font-size: var(--t-sm);
+  line-height: 1.5;
   color: var(--bone-dim);
   white-space: nowrap;
   overflow: hidden;
@@ -771,7 +777,7 @@
 
 .durak-btn.out {
   opacity: 0.5;
-  box-shadow: 0 0 0 var(--px) #000, 0 0 0 calc(var(--px) * 2) #2c2230;
+  box-shadow: 0 0 0 var(--px) #000, 0 0 0 calc(var(--px) * 2) #2c2c2a;
 }
 
 .durak-name {
@@ -1052,9 +1058,9 @@
 
 .offering-text {
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: var(--t-sm);
   color: var(--bone-dim);
-  line-height: 1.3;
+  line-height: 1.6;
 }
 
 .odds-toggle {
@@ -1086,7 +1092,7 @@
   font-size: var(--t-sm);
   text-transform: uppercase;
   padding: 3px 0;
-  border-bottom: 2px dotted #2c2230;
+  border-bottom: 2px dotted #2c2c2a;
 }
 
 .odds-swatch {
@@ -1259,7 +1265,7 @@
 }
 
 .award-title {
-  font-size: 16px;
+  font-size: var(--t-sm);
   color: var(--gold);
 }
 
@@ -1297,7 +1303,7 @@
 }
 
 .stat-l {
-  font-size: 16px;
+  font-size: var(--t-sm);
   color: var(--bone-dim);
 }
 
@@ -1351,7 +1357,7 @@
   border: none;
   background: #000;
   padding: 0;
-  box-shadow: 0 0 0 var(--px) #2c2230;
+  box-shadow: 0 0 0 var(--px) #2c2c2a;
 }
 
 .sigil-btn.on {
@@ -1443,5 +1449,151 @@
   }
   .pong-half {
     min-height: 230px;
+  }
+}
+
+/* ── Console bar (all sizes) ────────────────────────────── */
+
+.console-bar {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--pxn) * 2px);
+}
+
+.console-bar .shrine-btn {
+  flex: 1;
+  min-width: 0;
+}
+
+.console-status {
+  font-family: var(--font-ui);
+  font-size: var(--t-sm);
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--bone-dim);
+}
+
+.console-body[hidden] {
+  display: none;
+}
+
+.more-pop {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: calc(var(--pxn) * 2px);
+  min-width: 200px;
+  max-width: calc(100vw - 16px);
+  padding: calc(var(--pxn) * 2px);
+}
+
+.more-pop .btn {
+  justify-content: flex-start;
+}
+
+.more-note {
+  font-family: var(--font-ui);
+  font-size: var(--t-sm);
+  line-height: 1.5;
+  color: var(--bone-dim);
+  max-width: 280px;
+  word-break: break-word;
+}
+
+.pcard-count {
+  font-family: var(--font-ui);
+  font-size: var(--t-sm);
+  line-height: 1;
+  color: #ff3b30;
+}
+
+/* ── Phones: one-line players, slim console, events up top ─ */
+
+@media (max-width: 760px) {
+  .play-top {
+    padding: 6px 8px 0;
+  }
+  .play-status {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .players {
+    gap: calc(var(--pxn) * 2px);
+    padding: calc(var(--pxn) * 3px) 8px calc(var(--pxn) * 2px);
+  }
+  .pcard {
+    flex: 0 0 auto;
+    min-width: 0;
+    max-width: 62vw;
+    flex-direction: row;
+    align-items: center;
+    gap: calc(var(--pxn) * 2px);
+    padding: calc(var(--pxn) * 1px) calc(var(--pxn) * 2px);
+  }
+  .pcard.active {
+    transform: none;
+  }
+  .pcard.active::before {
+    top: auto;
+    bottom: calc(var(--pxn) * -9px);
+    content: '▲';
+  }
+  .pcard-head {
+    flex: 0 1 auto;
+  }
+  .pcard-name {
+    flex: 0 1 auto;
+    max-width: 10ch;
+  }
+  .pcard-sub,
+  .pcard-perks,
+  .pcard-place {
+    display: none;
+  }
+  .play-mid {
+    align-items: flex-start;
+    padding: 4px 8px;
+  }
+  .feed-line:nth-last-child(n + 3) {
+    display: none;
+  }
+  .play-console {
+    width: calc(100% - 12px);
+    margin-bottom: 6px;
+    padding: calc(var(--pxn) * 1px) calc(var(--pxn) * 2px);
+    gap: calc(var(--pxn) * 2px);
+    max-height: 62vh;
+  }
+  .play-console.folded {
+    padding-top: calc(var(--pxn) * 1px);
+    padding-bottom: calc(var(--pxn) * 1px);
+  }
+  .shrine-btn.compact {
+    min-height: 40px;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .fold-btn {
+    min-width: 44px;
+    min-height: 40px;
+  }
+  .darts-pad .pad-btn {
+    min-height: 40px;
+  }
+  .darts-rings .btn {
+    min-height: 36px;
+  }
+  .mmoves {
+    display: none;
+  }
+  /* Names are already in the players strip: the clock keeps the sigil and the time. */
+  .mclock .clock-who > span:not(.faint) {
+    display: none;
+  }
+  .mclock .clock-captured:empty {
+    display: none;
   }
 }

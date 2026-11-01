@@ -126,7 +126,7 @@ export class CastleScene extends BaseScene {
 
   build() {
     this.baseFov = 64;
-    this.parallax = 0.06;
+    this.parallax = 0.03;
     this.sway = 0.012;
     this.ambient.setRGB(0.15, 0.12, 0.2);
     this.fogColor.setRGB(0.03, 0.015, 0.05);
@@ -743,7 +743,7 @@ export class CastleScene extends BaseScene {
       case 'chess.sync': {
         const modeChanged = this.mirror !== e.mirror;
         this.mirror = e.mirror;
-        this.parallax = e.mirror ? 0.06 : 0.25;
+        this.parallax = e.mirror ? 0.03 : 0.25;
         this.sway = e.mirror ? 0.012 : 0.04;
         if (modeChanged && this.introDone) {
           const s = this.seat();

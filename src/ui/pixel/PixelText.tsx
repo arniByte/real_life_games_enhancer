@@ -19,19 +19,20 @@ export type Tone = 'gold' | 'bone' | 'blood' | 'soul' | 'violet' | 'green' | 'as
 type RGB = [number, number, number];
 
 const TONES: Record<Tone, [RGB, RGB]> = {
-  gold: [[255, 232, 150], [156, 84, 18]],
-  bone: [[252, 246, 228], [150, 128, 104]],
+  // «gold» is the headline ramp: white into steel. Real colour lives in blood/soul/green.
+  gold: [[255, 255, 255], [150, 150, 146]],
+  bone: [[240, 239, 234], [128, 128, 124]],
   blood: [[255, 128, 100], [122, 10, 22]],
   soul: [[214, 255, 255], [40, 140, 172]],
-  violet: [[236, 206, 255], [98, 48, 168]],
+  violet: [[214, 214, 220], [92, 92, 100]],
   green: [[210, 255, 170], [60, 120, 40]],
-  ash: [[200, 190, 176], [90, 82, 74]],
+  ash: [[196, 196, 192], [86, 86, 84]],
 };
 
 export const FONTS = {
   gothic: { family: 'Cormorant SC', weight: 700, cut: 100 },
   slavic: { family: 'Ruslan Display', weight: 400, cut: 110 },
-  pixel: { family: 'Tiny5', weight: 400, cut: 120 },
+  pixel: { family: 'Press Start 2P', weight: 400, cut: 120 },
 } as const;
 export type FontKey = keyof typeof FONTS;
 

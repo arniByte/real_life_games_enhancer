@@ -3,7 +3,7 @@ import type { Session } from '../../core/types';
 import { act, useApp } from '../../core/store';
 import { player } from '../../core/session';
 import { perkDef } from '../../core/perks/registry';
-import { AnimatePresence, Btn, Modal, PixelIcon } from '../../ui/components/kit';
+import { AnimatePresence, Btn, Modal, More, PixelIcon, useNarrow } from '../../ui/components/kit';
 import { useNav } from '../../ui/nav';
 import { fx, onScene } from '../../three';
 import type { ChessAnim } from '../../three/fx';
@@ -92,6 +92,7 @@ type PerkMode = { uid: string; defId: string; kind: (typeof PERK_MOVES)[string] 
 function MirrorBoard({ session }: { session: Session }) {
   const g = chess(session);
   const px = usePx();
+  const narrow = useNarrow();
   const announce = useNav((s) => s.announce);
   const { now, resend } = useChessClock(session);
   const [sel, setSel] = useState<string | null>(null);
@@ -309,7 +310,7 @@ function MirrorBoard({ session }: { session: Session }) {
         })}
       </div>
 
-      <div className="mhint" style={{ color: perk ? '#d08cff' : mover.color }}>
+      <div className="mhint" style={{ color: perk ? '#ff3b30' : mover.color }}>
         <span className="grow">{hint}</span>
         {(sel || perk) && (
           <Btn size="small" variant="ghost" onClick={() => { setSel(null); setPerk(null); }}>
@@ -332,7 +333,7 @@ function MirrorBoard({ session }: { session: Session }) {
                 onClick={() => togglePerk(k.uid, k.defId)}
                 silent
               >
-                <PixelIcon id={def.icon} color={def.kind === 'curse' ? '#e2433c' : '#ffc23a'} size={16} />
+                <PixelIcon id={def.icon} color={def.kind === 'curse' ? '#ff3b30' : '#ecebe6'} size={16} />
                 {def.name}
               </Btn>
             );
@@ -343,23 +344,33 @@ function MirrorBoard({ session }: { session: Session }) {
       <div className="mmoves">{pairs.length ? pairs.slice(-10).join(' ') : 'Партия начинается. Белые ходят первыми.'}</div>
 
       <div className="chess-foot">
-        {g.clock.enabled && g.clock.running && (
-          <Btn size="small" variant="ghost" onClick={() => act((s) => pauseClock(s))}>
-            ⏸ Пауза
+        <More>
+          {narrow && <div className="more-note">{pairs.length ? pairs.slice(-8).join(' ') : 'Ходов пока нет'}</div>}
+          {g.clock.enabled && g.clock.running && (
+            <Btn size="small" variant="ghost" onClick={() => act((s) => pauseClock(s))}>
+              ⏸ Пауза
+            </Btn>
+          )}
+          {g.clock.enabled && !g.clock.running && g.moves.length > 0 && (
+            <Btn size="small" variant="ghost" onClick={() => { act((s) => startClock(s)); sfx.clock(); }}>
+              ▶ Часы
+            </Btn>
+          )}
+          <Btn size="small" variant="ghost" onClick={() => setFlip((f) => !f)} title="Развернуть доску">
+            ⟲ Доска
           </Btn>
-        )}
-        {g.clock.enabled && !g.clock.running && g.moves.length > 0 && (
-          <Btn size="small" variant="ghost" onClick={() => { act((s) => startClock(s)); sfx.clock(); }}>
-            ▶ Часы
-          </Btn>
-        )}
-        <Btn size="small" variant="ghost" onClick={() => setFlip((f) => !f)} title="Развернуть доску">
-          ⟲ Доска
-        </Btn>
+          {narrow && (
+            <Btn size="small" variant="primary" onClick={() => setEnding(true)}>
+              Сдача / ничья
+            </Btn>
+          )}
+        </More>
         <div className="grow" />
-        <Btn size="small" variant="primary" onClick={() => setEnding(true)}>
-          Сдача / ничья
-        </Btn>
+        {!narrow && (
+          <Btn size="small" variant="primary" onClick={() => setEnding(true)}>
+            Сдача / ничья
+          </Btn>
+        )}
       </div>
 
       <AnimatePresence>

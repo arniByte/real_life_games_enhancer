@@ -110,11 +110,12 @@ function frame(style: FrameStyle): { grid: Grid; slice: number } {
 
 const PALETTE = {
   black: [0, 0, 0] as RGB,
-  bronzeHi: hex('#8a6a3c'),
-  bronze: hex('#4d3c2c'),
-  bronzeLo: hex('#24180f'),
-  gold: hex('#e0b44c'),
-  goldLo: hex('#6a4a14'),
+  // Steel greys for frames, a red rivet as the only accent.
+  bronzeHi: hex('#8c8c88'),
+  bronze: hex('#3c3c3a'),
+  bronzeLo: hex('#141414'),
+  gold: hex('#d8261e'),
+  goldLo: hex('#4a0a0e'),
 };
 
 export interface PixelTheme {
@@ -135,8 +136,8 @@ function cardFrame(color: RGB): FrameStyle {
   return {
     rings: [{ hi: PALETTE.black }, { hi: color, lo: mix(color, [0, 0, 0], 0.45) }, { hi: [0, 0, 0] }, { hi: mix(color, [0, 0, 0], 0.6) }],
     face: [
-      [14, 10, 18, 245],
-      [22, 16, 28, 245],
+      [12, 12, 13, 245],
+      [20, 20, 21, 245],
     ],
     rivet: color,
   };
@@ -163,35 +164,36 @@ export function buildTheme(px: number): PixelTheme {
   add('panel', frame({
     rings: [{ hi: PALETTE.black }, { hi: PALETTE.bronzeHi, lo: PALETTE.bronzeLo }, { hi: PALETTE.black }, { hi: PALETTE.bronze, lo: [16, 10, 6] }],
     face: [
-      [9, 7, 13, 228],
-      [17, 12, 22, 228],
+      [8, 8, 9, 228],
+      [16, 16, 17, 228],
     ],
     rivet: PALETTE.gold,
   }));
   add('panel-solid', frame({
     rings: [{ hi: PALETTE.black }, { hi: PALETTE.bronzeHi, lo: PALETTE.bronzeLo }, { hi: PALETTE.black }, { hi: PALETTE.bronze, lo: [16, 10, 6] }],
     face: [
-      [9, 7, 13, 255],
-      [16, 12, 21, 255],
+      [8, 8, 9, 255],
+      [15, 15, 16, 255],
     ],
     rivet: PALETTE.gold,
   }));
-  add('btn', frame(buttonFrame(hex('#2a2030'), hex('#6a5640'), hex('#120c10'))));
-  add('btn-hover', frame(buttonFrame(hex('#352838'), PALETTE.gold, hex('#3a2a10'))));
-  add('btn-down', frame(buttonFrame(hex('#1a1320'), hex('#6a5640'), hex('#120c10'), true)));
-  add('btn-primary', frame(buttonFrame(hex('#8a1820'), hex('#ff6a50'), hex('#3a060a'))));
-  add('btn-primary-hover', frame(buttonFrame(hex('#a8222a'), hex('#ffc0a0'), hex('#4a0a0e'))));
-  add('btn-gold', frame(buttonFrame(hex('#6a4c14'), hex('#ffe08a'), hex('#2a1a06'))));
-  add('btn-gold-hover', frame(buttonFrame(hex('#86621c'), hex('#fff4c8'), hex('#3a2408'))));
-  add('btn-soul', frame(buttonFrame(hex('#124a58'), hex('#a8ffff'), hex('#041820'))));
-  add('btn-soul-hover', frame(buttonFrame(hex('#1a6070'), hex('#e0ffff'), hex('#06222a'))));
-  add('btn-ghost', frame(buttonFrame(hex('#000000'), hex('#4d3c2c'), hex('#160e0a'), false, 150)));
-  add('btn-selected', frame(buttonFrame(hex('#4a3410'), PALETTE.gold, hex('#24180a'))));
+  add('btn', frame(buttonFrame(hex('#262626'), hex('#6a6a66'), hex('#0c0c0c'))));
+  add('btn-hover', frame(buttonFrame(hex('#303030'), hex('#ecebe6'), hex('#1a1a1a'))));
+  add('btn-down', frame(buttonFrame(hex('#161616'), hex('#6a6a66'), hex('#0c0c0c'), true)));
+  // primary: filled red · gold (the strong secondary): black with a red edge · soul: black with a white edge
+  add('btn-primary', frame(buttonFrame(hex('#a3121a'), hex('#ff5a4e'), hex('#3a0406'))));
+  add('btn-primary-hover', frame(buttonFrame(hex('#c41a22'), hex('#ffb0a8'), hex('#4a060a'))));
+  add('btn-gold', frame(buttonFrame(hex('#1c0c0c'), hex('#ff3b30'), hex('#3a0406'))));
+  add('btn-gold-hover', frame(buttonFrame(hex('#2c1010'), hex('#ff8a80'), hex('#4a060a'))));
+  add('btn-soul', frame(buttonFrame(hex('#141414'), hex('#ecebe6'), hex('#2a2a2a'))));
+  add('btn-soul-hover', frame(buttonFrame(hex('#202020'), hex('#ffffff'), hex('#3a3a3a'))));
+  add('btn-ghost', frame(buttonFrame(hex('#000000'), hex('#3c3c3a'), hex('#101010'), false, 150)));
+  add('btn-selected', frame(buttonFrame(hex('#3a0a0e'), hex('#ff3b30'), hex('#1c0406'))));
   add('input', frame({
-    rings: [{ hi: PALETTE.black }, { hi: hex('#120c10'), lo: hex('#6a5640') }],
+    rings: [{ hi: PALETTE.black }, { hi: hex('#0c0c0c'), lo: hex('#6a6a66') }],
     face: [
-      [4, 3, 6, 255],
-      [8, 6, 10, 255],
+      [4, 4, 4, 255],
+      [9, 9, 9, 255],
     ],
   }));
   for (const [k, c] of Object.entries(RARITY)) add(`card-${k}`, frame(cardFrame(hex(c))));
@@ -206,8 +208,8 @@ export function buildTheme(px: number): PixelTheme {
               [16, 4, 8, 255],
             ]
           : [
-              [10, 8, 14, 255],
-              [18, 14, 24, 255],
+              [10, 10, 11, 255],
+              [18, 18, 19, 255],
             ],
       }),
     );
@@ -218,8 +220,8 @@ export function buildTheme(px: number): PixelTheme {
     for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) g.set(x, y, (BAYER4[y][x] + 0.5) / 16 < density ? b : a);
     vars[`--d-${name}`] = `url(${g.toURL(px)})`;
   };
-  dither('dark', [6, 4, 9, 200], [16, 11, 20, 200]);
-  dither('blood', [40, 4, 8, 230], [90, 12, 18, 230], 0.35);
+  dither('dark', [5, 5, 6, 200], [15, 15, 16, 200]);
+  dither('blood', [40, 4, 6, 230], [96, 10, 14, 230], 0.35);
   dither('shade', [0, 0, 0, 0], [0, 0, 0, 150], 0.5);
 
   // Dissolve masks (Bayer thresholds)
