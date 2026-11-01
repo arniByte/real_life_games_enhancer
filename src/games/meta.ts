@@ -8,7 +8,7 @@ export const GAME_META: Record<GameId, GameMeta> = {
     world: 'Таверна «Кривой Дротик»',
     tagline: 'Каждый дротик — подношение. Каждая сотня — душа.',
     icon: 'dart',
-    accent: '#e8a33d',
+    accent: '#ff3b30',
     minPlayers: 1,
     maxPlayers: 8,
     options: [
@@ -103,7 +103,7 @@ export const GAME_META: Record<GameId, GameMeta> = {
     world: 'Цитадель Чёрной Королевы',
     tagline: 'Королева видит каждое взятие. И помнит.',
     icon: 'queen',
-    accent: '#9a62d6',
+    accent: '#ff3b30',
     minPlayers: 2,
     maxPlayers: 2,
     options: [
@@ -172,7 +172,7 @@ export const GAME_META: Record<GameId, GameMeta> = {
     world: 'Притон Шулера',
     tagline: 'Шулер сдаёт. Шулер смеётся. Шулер ждёт дурака.',
     icon: 'card',
-    accent: '#d9433b',
+    accent: '#ff3b30',
     minPlayers: 2,
     maxPlayers: 6,
     options: [
@@ -228,7 +228,7 @@ export const GAME_META: Record<GameId, GameMeta> = {
     world: 'Подвальная Арена',
     tagline: 'Здесь мяч не прощает. Лампы мигают. Счёт идёт.',
     icon: 'paddle',
-    accent: '#3fb3a6',
+    accent: '#ff3b30',
     minPlayers: 2,
     maxPlayers: 2,
     options: [
@@ -281,7 +281,7 @@ export const GAME_META: Record<GameId, GameMeta> = {
     world: 'Бездна Игр',
     tagline: 'Монополия, боулинг, кости, приставка — бездна примет всё.',
     icon: 'dice',
-    accent: '#6ad1ff',
+    accent: '#ff3b30',
     minPlayers: 1,
     maxPlayers: 8,
     options: [

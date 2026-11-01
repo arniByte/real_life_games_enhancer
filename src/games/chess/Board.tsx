@@ -310,7 +310,7 @@ function MirrorBoard({ session }: { session: Session }) {
         })}
       </div>
 
-      <div className="mhint" style={{ color: perk ? '#d08cff' : mover.color }}>
+      <div className="mhint" style={{ color: perk ? '#ff3b30' : mover.color }}>
         <span className="grow">{hint}</span>
         {(sel || perk) && (
           <Btn size="small" variant="ghost" onClick={() => { setSel(null); setPerk(null); }}>
@@ -333,7 +333,7 @@ function MirrorBoard({ session }: { session: Session }) {
                 onClick={() => togglePerk(k.uid, k.defId)}
                 silent
               >
-                <PixelIcon id={def.icon} color={def.kind === 'curse' ? '#e2433c' : '#ffc23a'} size={16} />
+                <PixelIcon id={def.icon} color={def.kind === 'curse' ? '#ff3b30' : '#ecebe6'} size={16} />
                 {def.name}
               </Btn>
             );

@@ -96,7 +96,7 @@ export function Play() {
           ☰
         </Btn>
         <div className="play-title grow">
-          <Heading tone={meta.accent} align="center">
+          <Heading align="center">
             {meta.world}
           </Heading>
           <div className="play-status">{logic.status(session)}</div>
@@ -175,7 +175,7 @@ function PlayerCard({ session, pid, active, place, onOpen, compact }: { session:
         {session.enhancer.enabled && <Souls n={p.souls} size={16} />}
       </div>
       <div key={sv.main} className="dither-in">
-        <Num tone={active ? 'gold' : 'bone'} scale={compact ? 1 : 2}>
+        <Num tone={active ? 'gold' : 'bone'} scale={compact ? 2 : 3}>
           {sv.main}
         </Num>
       </div>

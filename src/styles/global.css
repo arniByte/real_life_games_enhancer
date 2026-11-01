@@ -9,16 +9,18 @@
 :root {
   --pxn: 3;
   --px: 3px;
-  --ink: #050407;
-  --bone: #efe5cc;
-  --bone-dim: #b0a088;
-  --bone-faint: #74685a;
-  --line: #4d3c2c;
-  --line-hi: #e0b44c;
-  --blood: #b8222a;
-  --blood-hi: #ff5a48;
+  /* Black · white · greys, one red accent. Colour only where it means something:
+     players, rarity, curses, souls. */
+  --ink: #050505;
+  --bone: #ecebe6;
+  --bone-dim: #a6a6a2;
+  --bone-faint: #66665f;
+  --line: #3a3a38;
+  --line-hi: #ecebe6;
+  --blood: #b3141c;
+  --blood-hi: #ff3b30;
   --soul: #8ff0ff;
-  --gold: #ffd060;
+  --gold: #ffffff;
   --common: #d8cfb8;
   --rare: #4fb3ff;
   --epic: #b06aff;
@@ -26,14 +28,14 @@
   --curse-1: #a5c95a;
   --curse-2: #ec5a43;
   --curse-3: #ff2a55;
-  --accent: #e8a33d;
-  --font-ui: 'Tiny5', 'Pixelify Sans', monospace;
-  --font-body: 'Pixelify Sans', 'Tiny5', monospace;
+  --accent: #ff3b30;
+  /* Press Start 2P: an 8px-grid face with clean Cyrillic. Sizes stay on multiples of 4px. */
+  --font-ui: 'Press Start 2P', 'Tiny5', 'Pixelify Sans', monospace;
+  --font-body: 'Press Start 2P', 'Tiny5', 'Pixelify Sans', monospace;
   --font-osd: 'VT323', monospace;
-  /* Tiny5 is crisp on multiples of 8px */
-  --t-ui: calc(var(--pxn) * 8px);
-  --t-sm: 16px;
-  --t-body: 17px;
+  --t-ui: calc(var(--pxn) * 4px);
+  --t-sm: calc(var(--pxn) * 4px);
+  --t-body: calc(var(--pxn) * 4px);
   --hard: calc(var(--pxn) * 1px) calc(var(--pxn) * 1px) 0 rgba(0, 0, 0, 0.75);
   --chroma: -1px 0 rgba(255, 40, 90, 0.38), 1px 0 rgba(30, 220, 255, 0.38), 0 2px 0 #000;
   --gap: calc(var(--pxn) * 4px);
@@ -43,7 +45,8 @@
 
 @media (max-width: 640px) {
   :root {
-    --t-body: 16px;
+    --t-ui: 10px;
+    --t-body: 10px;
   }
 }
 
@@ -60,6 +63,7 @@ body,
   color: var(--bone);
   font-family: var(--font-body);
   font-size: var(--t-body);
+  line-height: 1.7;
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: none;
@@ -185,14 +189,14 @@ img {
   font-size: var(--t-ui);
   line-height: 1;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0;
   white-space: nowrap;
 }
 
 .btn:hover:not(:disabled),
 .btn:focus-visible {
   border-image-source: var(--f-btn-hover);
-  color: #fff6d8;
+  color: #ffffff;
   outline: none;
 }
 
@@ -210,21 +214,21 @@ img {
 
 .btn.primary {
   border-image-source: var(--f-btn-primary);
-  color: #fff0e0;
+  color: #ffffff;
 }
 .btn.primary:hover:not(:disabled) {
   border-image-source: var(--f-btn-primary-hover);
 }
 .btn.gold {
   border-image-source: var(--f-btn-gold);
-  color: #fff4cc;
+  color: #ffffff;
 }
 .btn.gold:hover:not(:disabled) {
   border-image-source: var(--f-btn-gold-hover);
 }
 .btn.soul {
   border-image-source: var(--f-btn-soul);
-  color: #e4feff;
+  color: #ffffff;
 }
 .btn.soul:hover:not(:disabled) {
   border-image-source: var(--f-btn-soul-hover);
@@ -236,7 +240,7 @@ img {
 .btn.selected,
 .btn.selected:hover:not(:disabled) {
   border-image-source: var(--f-btn-selected);
-  color: #ffe9a8;
+  color: #ffffff;
 }
 
 .btn.small {
@@ -376,7 +380,7 @@ img {
 .scroll {
   overflow: auto;
   scrollbar-width: thin;
-  scrollbar-color: var(--line-hi) #0a070c;
+  scrollbar-color: var(--line-hi) #0a0a0a;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -388,7 +392,7 @@ img {
   border: var(--px) solid #000;
 }
 .scroll::-webkit-scrollbar-track {
-  background: #0a070c;
+  background: #0a0a0a;
 }
 
 /* ── Modal ──────────────────────────────────────────────── */
